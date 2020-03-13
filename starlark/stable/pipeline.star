@@ -1,27 +1,6 @@
 #!starlark
 # vi:syntax=python
 
-def task(name, pipeline=None, **kwargs):
-    if not pipeline:
-        pipeline = global_pipeline
-
-    pipeline.tasks[name] = p.Task(**kwargs)
-    return name
-
-def resource(name, pipeline=None, **kwargs):
-    if not pipeline:
-        pipeline = global_pipeline
-
-    pipeline.resources[name] = p.Resource(**kwargs)
-    return name
-
-def action(pipeline=None, **kwargs):
-    if not pipeline:
-        pipeline = global_pipeline
-
-    pipeline.actions.append(p.Action(**kwargs))
-    return pipeline.actions[-1]
-
 def push(**kwargs):
     return p.Condition(push=p.PushCondition(**kwargs))
 
