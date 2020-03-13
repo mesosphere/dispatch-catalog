@@ -11,7 +11,7 @@ def dindTask(*args, **kwargs):
     kwargs['volumes'] = volumes
     for index, step in enumerate(kwargs.get('steps', [])):
         if step.image == "":
-            step.image = dind_image
+            step.image = "mesosphere/dispatch-dind:1.0.0"
         step.volumeMounts.append(k8s.corev1.VolumeMount(name="docker", mountPath="/var/lib/docker"))
         step.volumeMounts.append(k8s.corev1.VolumeMount(name="modules", mountPath="/lib/modules", readOnly=True))
         step.volumeMounts.append(k8s.corev1.VolumeMount(name="cgroups", mountPath="/sys/fs/cgroup"))
