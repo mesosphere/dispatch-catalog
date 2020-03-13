@@ -67,36 +67,38 @@ def go(git, name, ldflags=None, os=None, **kwargs):
     task(taskName, inputs=[git], outputs=[storageResource(taskName)], steps=steps, **kwargs)
     return taskName
 
-def ko(git, name, *args, ldflags=None, **kwargs):
+def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1.0.0", **kwargs):
     taskName = "{}-ko".format(name)
 
     imageResource(taskName,
-        url="mesosphere/{}:$(context.build.name)".format(name),
+        url="{}{}:$(context.build.name)".format(name, ko_docker_repo),
         digest="$(inputs.resources.{}.digest)".format(taskName))
 
     env = [
         k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
-        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value="docker.io/mesosphere"),
+        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value=ko_docker_repo),
     ]
 
     if ldflags:
         env.append(k8s.corev1.EnvVar(name="GOFLAGS", value="-ldflags={}".format(ldflags)))
 
-    task(taskName, inputs=[git, ko_image], outputs=[taskName], steps=[buildkitContainer(
-        name="ko-build",
-        image="mesosphere/ko@{}".format(resourceVar(ko_image, "digest")),
-        command=[
-            "ko", "publish", "--oci-layout-path=./image-output",
-            "--base-import-paths", "--tags", "$(context.build.name)", "./cmd/{}".format(name)
-        ],
-        env=env,
-        workingDir="/workspace/{}".format(git)
-    ),
-    k8s.corev1.Container(
-        name="copy-digest",
-        image="alpine",
-        workingDir="/workspace/{}".format(git),
-        command=[ "cp", "./image-output/index.json", "/workspace/output/{}".format(taskName) ]
-    )])
+    task(taskName, inputs=[git]+kwargs.get("inputs", []), outputs=[taskName], steps=[
+        buildkitContainer(
+            name="ko-build",
+            image="mesosphere/ko@{}".format(resourceVar(ko_image, "digest")),
+            command=[
+                "ko", "publish", "--oci-layout-path=./image-output",
+                "--base-import-paths", "--tags", "$(context.build.name)", "./cmd/{}".format(name)
+            ],
+            env=env,
+            workingDir="/workspace/{}".format(git)
+        ),
+        k8s.corev1.Container(
+            name="copy-digest",
+            image="alpine",
+            workingDir="/workspace/{}".format(git),
+            command=[ "cp", "./image-output/index.json", "/workspace/output/{}".format(taskName) ]
+        )
+    ], **kwargs)
 
     return taskName
