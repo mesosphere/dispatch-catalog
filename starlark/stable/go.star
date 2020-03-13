@@ -67,7 +67,7 @@ def go(git, name, ldflags=None, os=None, **kwargs):
     task(taskName, inputs=[git], outputs=[storageResource(taskName)], steps=steps, **kwargs)
     return taskName
 
-def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1.0.0", **kwargs):
+def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1.0.0", inputs=None, **kwargs):
     taskName = "{}-ko".format(name)
 
     imageResource(taskName,
@@ -82,7 +82,7 @@ def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1
     if ldflags:
         env.append(k8s.corev1.EnvVar(name="GOFLAGS", value="-ldflags={}".format(ldflags)))
 
-    task(taskName, inputs=[git]+kwargs.get("inputs", []), outputs=[taskName], steps=[
+    task(taskName, inputs=[git]+(inputs or []), outputs=[taskName], steps=[
         buildkitContainer(
             name="ko-build",
             image="mesosphere/ko@{}".format(resourceVar(ko_image, "digest")),
