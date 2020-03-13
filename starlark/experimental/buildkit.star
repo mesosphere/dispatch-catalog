@@ -1,7 +1,7 @@
 #!starlark
 # vi:syntax=python
 
-load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "clean")
+load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "clean", "imageResource")
 
 def buildkitContainer(name, image, workingDir, command, output=True, **kwargs):
     """
