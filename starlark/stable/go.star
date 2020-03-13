@@ -1,7 +1,7 @@
 #!starlark
 # vi:syntax=python
 
-load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "storageResource", "resourceVar")
+load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "imageResource", "storageResource", "resourceVar")
 load("github.com/jbarrick-mesosphere/catalog/starlark/experimental/buildkit@master", "buildkitContainer")
 
 def go_test(git, name, paths=None, **kwargs):
