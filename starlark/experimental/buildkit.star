@@ -1,6 +1,8 @@
 #!starlark
 # vi:syntax=python
 
+load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "clean")
+
 def buildkitContainer(name, image, workingDir, command, output=True, **kwargs):
     """
     buildkitContainer returns a Kubernetes corev1.Container that runs inside of buildkit.

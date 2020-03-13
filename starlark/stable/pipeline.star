@@ -40,3 +40,6 @@ def storageResource(name):
     })
 
     return name
+
+def clean(name):
+    return name.replace("/", "-").replace(":", "-").replace(".", "-")
