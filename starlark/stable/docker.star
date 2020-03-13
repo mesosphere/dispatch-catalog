@@ -1,6 +1,8 @@
 #!starlark
 # vi:syntax=python
 
+load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "volume")
+
 def dindTask(*args, **kwargs):
     volumes = kwargs.get('volumes', [])
     volumes.append(volume("docker", emptyDir=k8s.corev1.EmptyDirVolumeSource()))
