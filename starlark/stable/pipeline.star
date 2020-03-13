@@ -11,10 +11,11 @@ def pullRequest(**kwargs):
     return p.Condition(pull_request=p.PullRequestCondition(**kwargs))
 
 def gitResource(name, url="$(context.git.url)", revision="$(context.git.commit)", pipeline=None):
-    return resource(name, type = "git", params = {
+    resource(name, type = "git", params = {
         "url": url,
         "revision": revision,
     }, pipeline=pipeline)
+    return name
 
 def imageResource(name, url, digest, pipeline=None):
     return resource(name, type = "image", params = {
