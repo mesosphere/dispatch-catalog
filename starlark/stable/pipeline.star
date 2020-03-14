@@ -9,7 +9,7 @@ def push(**kwargs):
     """
     A sugar function for creating a new push condition.
 
-    Example usage: action(tasks = ["test"], on = push(branches = ["master"]))
+    Example usage: `action(tasks = ["test"], on = push(branches = ["master"]))`
     """
     return p.Condition(push=p.PushCondition(**kwargs))
 
@@ -17,7 +17,7 @@ def tag(**kwargs):
     """
     A sugar function for creating a new tag condition.
 
-    Example usage: action(tasks = ["test"], on = tag())
+    Example usage: `action(tasks = ["test"], on = tag())`
     """
     return p.Condition(tag=p.TagCondition(**kwargs))
 
@@ -25,7 +25,7 @@ def pullRequest(**kwargs):
     """
     A sugar function for creating a new pull request condition.
 
-    Example usage: action(tasks = ["test"], on = pullRequest(chatops=["build"]))
+    Example usage: `action(tasks = ["test"], on = pullRequest(chatops=["build"]))`
     """
     return p.Condition(pull_request=p.PullRequestCondition(**kwargs))
 
@@ -33,7 +33,7 @@ def gitResource(name, url="$(context.git.url)", revision="$(context.git.commit)"
     """
     Define a new git resource in a pipeline.
 
-    Example usage: gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")
+    Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
     """
     resource(name, type = "git", params = {
         "url": url,
@@ -45,7 +45,7 @@ def imageResource(name, url, digest, pipeline=None):
     """
     Define a new image resource in a pipeline.
 
-    Example usage: imageResource("my-image", url="mesosphere/dispatch:latest")
+    Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
     """
     return resource(name, type = "image", params = {
         "url": url,
@@ -68,7 +68,7 @@ def secretVar(name, key):
     """
     Convenience function for adding an environment variable from a Kubernetes secret.
 
-    Example usage: k8s.corev1.EnvVar(name="GITHUB_TOKEN", valueFrom=secretVar("scmtoken", "password"))
+    Example usage: `k8s.corev1.EnvVar(name="GITHUB_TOKEN", valueFrom=secretVar("scmtoken", "password"))`
     """
     return k8s.corev1.EnvVarSource(secretKeyRef=k8s.corev1.SecretKeySelector(localObjectReference=k8s.corev1.LocalObjectReference(name=name), key=key))
 
