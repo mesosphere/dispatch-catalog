@@ -1,0 +1,64 @@
+#!starlark
+# vi:syntax=python
+
+load("github.com/jbarrick-mesosphere/catalog/starlark/stable/docker@master", "dindTask")
+load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "gitResource", "secretVar", "pullRequest", "push")
+
+git = gitResource("git")
+
+dindTask("build", inputs=[ git ], outputs=[ git ], steps=[
+    k8s.corev1.Container(
+        name="build",
+        workingDir="/workspace/{}".format(git),
+        command=[ 
+            "/bin/sh", "-c",
+            """
+            curl -Lo /usr/bin/dispatch https://d2iq-dispatch.s3.amazonaws.com/dispatch_linux_1.0.0
+            chmod +x /usr/bin/dispatch
+
+            make build
+            """
+        ],
+        env=[
+            k8s.corev1.EnvVar(name="SCM_TOKEN", valueFrom=secretVar("scmtoken", "password")),
+            k8s.corev1.EnvVar(name="SCM_USERNAME", valueFrom=secretVar("scmtoken", "username")),
+        ]
+    )
+])
+
+task("post-merge-updates",
+    deps=["build"],
+    inputs=[git],
+    steps=[
+        k8s.corev1.Container(
+            name="commit-image-digest",
+            image="alpine/git",
+            workingDir="/workspace/{}".format(git),
+            command=[
+                "sh", "-c",
+                """
+                git config user.name CI
+                git config user.email devx-team@d2iq.com
+                git add docs/
+                git diff --cached --exit-code || git commit -m 'chart: bump docs'
+                """
+            ]
+        ),
+        k8s.corev1.Container(
+            name="push-new-commits",
+            image="alpine/git",
+            workingDir="/workspace/{}".format(git),
+            command=[
+                "sh", "-c",
+                """
+                git checkout -b $(context.git.branch)
+                git fetch origin $(context.git.branch)
+                git diff --exit-code origin/$(context.git.branch) || git push origin $(context.git.branch)
+                """
+            ]
+        )
+    ]
+)
+
+action(tasks=["build"], on=pullRequest())
+action(tasks=["post-merge-updates"], on=push(branches=["master"], paths=[ "!docs/*" ]))

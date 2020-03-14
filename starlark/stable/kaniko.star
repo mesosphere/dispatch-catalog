@@ -1,6 +1,8 @@
 #!starlark
 # vi:syntax=python
 
+load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "clean", "imageResource")
+
 def kaniko(git, image, context="", dockerfile="Dockerfile", **kwargs):
     imageWithTag = "{}:$(context.build.name)".format(image)
     name = clean(image)

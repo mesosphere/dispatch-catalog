@@ -1,6 +1,10 @@
 #!starlark
 # vi:syntax=python
 
+__doc__ = """
+This module provides methods useful for crafting the basic Dispatch pipeline resources in Starlark.
+"""
+
 def push(**kwargs):
     """
     A sugar function for creating a new push condition.
