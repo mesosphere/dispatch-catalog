@@ -12,6 +12,9 @@ Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/stable/kaniko`
 """
 
 def kaniko(git, image, context="", dockerfile="Dockerfile", **kwargs):
+    """
+    Build a Docker image using Kaniko.
+    """
     imageWithTag = "{}:$(context.build.name)".format(image)
     name = clean(image)
     additional_inputs = kwargs.get("inputs",[])

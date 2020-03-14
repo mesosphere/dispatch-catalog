@@ -8,5 +8,7 @@ Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/stable/kaniko`
 ### kaniko(git, image, context, dockerfile, **kwargs)
 
 
+Build a Docker image using Kaniko.
+
 
 

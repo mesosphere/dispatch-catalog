@@ -13,6 +13,10 @@ Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/stable/go`
 """
 
 def go_test(git, name, paths=None, **kwargs):
+    """
+    Run Go tests and generate a coverage report.
+    """
+
     if not paths:
         paths = []
 
@@ -45,6 +49,10 @@ def go_test(git, name, paths=None, **kwargs):
     return taskName
 
 def go(git, name, ldflags=None, os=None, **kwargs):
+    """
+    Build a Go binary.
+    """
+
     if not os:
         os = ['linux']
 
@@ -76,6 +84,9 @@ def go(git, name, ldflags=None, os=None, **kwargs):
     return taskName
 
 def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1.0.0", inputs=None, **kwargs):
+    """
+    Build a Docker container for a Go binary using ko.
+    """
     taskName = "{}-ko".format(name)
 
     imageResource(taskName,
