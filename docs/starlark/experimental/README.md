@@ -1,3 +1,3 @@
 # experimental Starlark Modules
 
-* [buildkit](starlark/experimental/buildkit)
+* [buildkit](../../../starlark/experimental/buildkit)
