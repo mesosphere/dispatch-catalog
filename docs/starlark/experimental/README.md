@@ -1,3 +1,3 @@
 # experimental Starlark Modules
 
-* [buildkit](buildkit)
+* [buildkit](buildkit.md)

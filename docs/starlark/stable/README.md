@@ -1,6 +1,6 @@
 # stable Starlark Modules
 
-* [go](go)
-* [docker](docker)
-* [kaniko](kaniko)
-* [pipeline](pipeline)
+* [go](go.md)
+* [docker](docker.md)
+* [kaniko](kaniko.md)
+* [pipeline](pipeline.md)
