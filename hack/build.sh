@@ -11,8 +11,8 @@ EOF
     for file in $(find starlark/$1 -name '*.star' -print | sed 's/[.]star$//g'); do
         mkdir -p ./docs/$(dirname $file)
         dispatch ci gen-doc --file ./$file.star > ./docs/$file.md
-        echo "* [$(basename $file)]($(realpath --relative-to docs/starlark/ $file))" >> docs/starlark/README.md
-        echo "* [$(basename $file)]($(realpath --relative-to docs/starlark/$1 $file))" >> docs/starlark/$1/README.md
+        echo "* [$(basename $file)]($(realpath --relative-to starlark/ $file))" >> docs/starlark/README.md
+        echo "* [$(basename $file)]($(realpath --relative-to starlark/$1 $file))" >> docs/starlark/$1/README.md
     done
 }
 
