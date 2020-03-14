@@ -3,6 +3,14 @@
 
 load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "clean", "imageResource")
 
+__doc__ = """
+# Kaniko
+
+Provides methods for building Docker containers using Kaniko.
+
+Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/stable/kaniko`
+"""
+
 def kaniko(git, image, context="", dockerfile="Dockerfile", **kwargs):
     imageWithTag = "{}:$(context.build.name)".format(image)
     name = clean(image)

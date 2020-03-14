@@ -3,6 +3,15 @@
 
 load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "volume")
 
+__doc__ = """
+# Docker
+
+Provides methods for using Docker.
+
+Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/stable/docker`
+"""
+
+
 def dindTask(*args, **kwargs):
     """
     Defines a new docker-in-docker task in a pipeline. The steps are run in the default `mesosphere/dispatch-dind` image unless an alternative image is specified.
