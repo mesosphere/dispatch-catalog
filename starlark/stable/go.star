@@ -11,7 +11,7 @@ Provides methods for building and testing Go modules.
 Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/go`
 """
 
-def go_test(git, name, paths=None, image="golang:1.13.0-buster", **kwargs):
+def go_test(git, name, paths=None, image="golang:1.13.0-buster", inputs=None, **kwargs):
     """
     Run Go tests and generate a coverage report.
     """
@@ -21,7 +21,7 @@ def go_test(git, name, paths=None, image="golang:1.13.0-buster", **kwargs):
 
     taskName = "{}-test".format(name)
 
-    task(taskName, inputs=[git] + kwargs.get("inputs", []), outputs=[ storageResource(taskName) ], steps=[
+    task(taskName, inputs=[git] + (inputs or []), outputs=[ storageResource(taskName) ], steps=[
         buildkitContainer(
             name="go-test-{}".format(name),
             image=image,
@@ -47,7 +47,7 @@ def go_test(git, name, paths=None, image="golang:1.13.0-buster", **kwargs):
 
     return taskName
 
-def go(git, name, ldflags=None, os=None, image="golang:1.13.0-buster", **kwargs):
+def go(git, name, ldflags=None, os=None, image="golang:1.13.0-buster", inputs=None, **kwargs):
     """
     Build a Go binary.
     """
@@ -79,7 +79,7 @@ def go(git, name, ldflags=None, os=None, image="golang:1.13.0-buster", **kwargs)
             workingDir="/workspace/{}".format(git)
         ))
 
-    task(taskName, inputs=[git] + kwargs.get("inputs", []), outputs=[storageResource(taskName)], steps=steps, **kwargs)
+    task(taskName, inputs=[git] + (inputs or []), outputs=[storageResource(taskName)], steps=steps, **kwargs)
     return taskName
 
 def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1.0.0", inputs=None, tags=None, **kwargs):
