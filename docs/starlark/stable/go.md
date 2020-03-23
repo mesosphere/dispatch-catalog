@@ -5,7 +5,13 @@ Provides methods for building and testing Go modules.
 
 Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/go`
 
-### go(git, name, ldflags, os, image, **kwargs)
+### go_test(git, name, paths, image, inputs, **kwargs)
+
+
+Run Go tests and generate a coverage report.
+
+
+### go(git, name, ldflags, os, image, inputs, **kwargs)
 
 
 Build a Go binary.
@@ -15,12 +21,6 @@ Build a Go binary.
 
 
 Build a Docker container for a Go binary using ko.
-
-
-### go_test(git, name, paths, image, **kwargs)
-
-
-Run Go tests and generate a coverage report.
 
 
 
