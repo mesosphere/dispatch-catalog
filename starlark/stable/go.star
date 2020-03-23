@@ -106,7 +106,7 @@ def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1
     task(taskName, inputs=[git]+(inputs or []), outputs=[taskName], steps=[
         buildkitContainer(
             name="ko-build",
-            image="mesosphere/ko@{}".format(resourceVar(ko_image, "digest")),
+            image=ko_image,
             command=[
                 "ko", "publish", "--oci-layout-path=./image-output",
                 "--base-import-paths", "--tags", tags, "./cmd/{}".format(name)
