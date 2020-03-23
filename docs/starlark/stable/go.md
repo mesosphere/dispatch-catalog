@@ -17,7 +17,7 @@ Run Go tests and generate a coverage report.
 Build a Go binary.
 
 
-### ko(git, name, ko_docker_repo, ldflags, ko_image, inputs, *args, **kwargs)
+### ko(git, name, ko_docker_repo, ldflags, ko_image, inputs, tags, *args, **kwargs)
 
 
 Build a Docker container for a Go binary using ko.

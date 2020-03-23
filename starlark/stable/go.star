@@ -82,7 +82,7 @@ def go(git, name, ldflags=None, os=None, **kwargs):
     task(taskName, inputs=[git], outputs=[storageResource(taskName)], steps=steps, **kwargs)
     return taskName
 
-def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1.0.0", inputs=None, **kwargs):
+def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1.0.0", inputs=None, tags=None, **kwargs):
     """
     Build a Docker container for a Go binary using ko.
     """
@@ -100,13 +100,16 @@ def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1
     if ldflags:
         env.append(k8s.corev1.EnvVar(name="GOFLAGS", value="-ldflags={}".format(ldflags)))
 
+    if not tags:
+        tags = "$(context.build.name)"
+
     task(taskName, inputs=[git]+(inputs or []), outputs=[taskName], steps=[
         buildkitContainer(
             name="ko-build",
             image="mesosphere/ko@{}".format(resourceVar(ko_image, "digest")),
             command=[
                 "ko", "publish", "--oci-layout-path=./image-output",
-                "--base-import-paths", "--tags", "$(context.build.name)", "./cmd/{}".format(name)
+                "--base-import-paths", "--tags", tags, "./cmd/{}".format(name)
             ],
             env=env,
             workingDir="/workspace/{}".format(git)

@@ -2,5 +2,5 @@
 
 * [docker](docker.md)
 * [pipeline](pipeline.md)
-* [go](go.md)
 * [kaniko](kaniko.md)
+* [go](go.md)
