@@ -1,14 +1,13 @@
-#!starlark
 # vi:syntax=python
 
-load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "clean", "imageResource")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@master", "clean", "imageResource")
 
 __doc__ = """
 # Kaniko
 
 Provides methods for building Docker containers using Kaniko.
 
-Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/stable/kaniko`
+Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/kaniko`
 """
 
 def kaniko(git, image, context="", dockerfile="Dockerfile", **kwargs):

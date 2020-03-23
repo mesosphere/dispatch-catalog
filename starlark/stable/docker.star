@@ -1,14 +1,13 @@
-#!starlark
 # vi:syntax=python
 
-load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "volume")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@master", "volume")
 
 __doc__ = """
 # Docker
 
 Provides methods for using Docker.
 
-Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/stable/docker`
+Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/docker`
 """
 
 

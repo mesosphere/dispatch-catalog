@@ -1,14 +1,13 @@
-#!starlark
 # vi:syntax=python
 
-load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "clean", "imageResource", "volume")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@master", "clean", "imageResource", "volume")
 
 __doc__ = """
 # Buildkit
 
 Provides methods for interacting with a Buildkit instance.
 
-Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/experimental/buildkit`
+Import URL: `github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit`
 """
 
 def buildkitContainer(name, image, workingDir, command, output=True, **kwargs):

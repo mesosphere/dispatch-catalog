@@ -1,4 +1,3 @@
-#!starlark
 # vi:syntax=python
 
 __doc__ = """
@@ -6,7 +5,7 @@ __doc__ = """
 
 This module provides methods useful for crafting the basic Dispatch pipeline resources in Starlark.
 
-Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline`
+Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline`
 """
 
 def push(**kwargs):

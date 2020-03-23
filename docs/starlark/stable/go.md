@@ -3,7 +3,7 @@
 
 Provides methods for building and testing Go modules.
 
-Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/stable/go`
+Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/go`
 
 ### go_test(git, name, paths, **kwargs)
 

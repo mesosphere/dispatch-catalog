@@ -3,7 +3,7 @@
 
 Provides methods for interacting with a Buildkit instance.
 
-Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/experimental/buildkit`
+Import URL: `github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit`
 
 ### buildkitContainer(name, image, workingDir, command, output, **kwargs)
 

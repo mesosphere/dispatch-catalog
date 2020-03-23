@@ -1,15 +1,14 @@
-#!starlark
 # vi:syntax=python
 
-load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "imageResource", "storageResource", "resourceVar")
-load("github.com/jbarrick-mesosphere/catalog/starlark/experimental/buildkit@master", "buildkitContainer")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@master", "imageResource", "storageResource", "resourceVar")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@master", "buildkitContainer")
 
 __doc__ = """
 # Go
 
 Provides methods for building and testing Go modules.
 
-Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/stable/go`
+Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/go`
 """
 
 def go_test(git, name, paths=None, **kwargs):

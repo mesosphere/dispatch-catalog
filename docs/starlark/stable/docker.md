@@ -3,7 +3,7 @@
 
 Provides methods for using Docker.
 
-Import URL: `github.com/jbarrick-mesosphere/catalog/starlark/stable/docker`
+Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/docker`
 
 ### dindTask(*args, **kwargs)
 
