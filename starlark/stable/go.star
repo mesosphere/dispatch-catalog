@@ -11,7 +11,7 @@ Provides methods for building and testing Go modules.
 Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/go`
 """
 
-def go_test(git, name, paths=None, **kwargs):
+def go_test(git, name, paths=None, image="golang:1.13.0-buster", **kwargs):
     """
     Run Go tests and generate a coverage report.
     """
@@ -21,17 +21,17 @@ def go_test(git, name, paths=None, **kwargs):
 
     taskName = "{}-test".format(name)
 
-    task(taskName, inputs=[git], outputs=[ storageResource(taskName) ], steps=[
+    task(taskName, inputs=[git] + kwargs.get("inputs", []), outputs=[ storageResource(taskName) ], steps=[
         buildkitContainer(
             name="go-test-{}".format(name),
-            image="golang:1.13.0-buster",
+            image=image,
             command=[ "go", "test", "-v", "-coverprofile", "/workspace/output/{}/coverage.out".format(taskName) ] + paths,
             env=[ k8s.corev1.EnvVar(name="GO111MODULE", value="on") ],
             workingDir="/workspace/{}".format(git)
         ),
         k8s.corev1.Container(
             name="coverage-report-{}".format(name),
-            image="golang:1.13.0-buster",
+            image=image,
             workingDir="/workspace/{}/".format(git),
             command=[
                 "sh", "-c",
@@ -47,7 +47,7 @@ def go_test(git, name, paths=None, **kwargs):
 
     return taskName
 
-def go(git, name, ldflags=None, os=None, **kwargs):
+def go(git, name, ldflags=None, os=None, image="golang:1.13.0-buster", **kwargs):
     """
     Build a Go binary.
     """
@@ -68,7 +68,7 @@ def go(git, name, ldflags=None, os=None, **kwargs):
     for os_name in os:
         steps.append(buildkitContainer(
             name="go-build-{}".format(os_name),
-            image="golang:1.13.0-buster",
+            image=image,
             command=command + [
                 "-o", "/workspace/output/{}/{}_{}".format(taskName, name, os_name), "./cmd/{}".format(name)
             ],
@@ -79,7 +79,7 @@ def go(git, name, ldflags=None, os=None, **kwargs):
             workingDir="/workspace/{}".format(git)
         ))
 
-    task(taskName, inputs=[git], outputs=[storageResource(taskName)], steps=steps, **kwargs)
+    task(taskName, inputs=[git] + kwargs.get("inputs", []), outputs=[storageResource(taskName)], steps=steps, **kwargs)
     return taskName
 
 def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1.0.0", inputs=None, tags=None, **kwargs):
