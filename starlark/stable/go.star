@@ -92,7 +92,7 @@ def ko(git, image_name, name, *args, ldflags=None, ko_image="mesosphere/ko:1.0.0
         tag = "$(context.build.name)"
 
     imageResource(taskName,
-        url="{}:{}".format(image_name, tags),
+        url="{}:{}".format(image_name, tag),
         digest="$(inputs.resources.{}.digest)".format(taskName))
 
     env = [
