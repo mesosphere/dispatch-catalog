@@ -82,7 +82,7 @@ def go(git, name, ldflags=None, os=None, image="golang:1.13.0-buster", inputs=No
     task(taskName, inputs=[git] + (inputs or []), outputs=[storageResource(taskName)], steps=steps, **kwargs)
     return taskName
 
-def ko(git, image_name, name, *args, ldflags=None, ko_image="mesosphere/ko:1.0.0", inputs=None, tag=None, **kwargs):
+def ko(git, image_name, name, *args, ldflags=None, ko_image="mesosphere/ko:pr-427", inputs=None, tag=None, **kwargs):
     """
     Build a Docker container for a Go binary using ko.
     """
