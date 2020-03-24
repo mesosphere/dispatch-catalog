@@ -97,6 +97,7 @@ def ko(git, image_name, name, *args, ldflags=None, ko_image="mesosphere/ko:pr-42
 
     env = [
         k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
+        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value="-"),
     ]
 
     if ldflags:
