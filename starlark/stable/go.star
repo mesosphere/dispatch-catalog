@@ -82,44 +82,45 @@ def go(git, name, ldflags=None, os=None, image="golang:1.13.0-buster", inputs=No
     task(taskName, inputs=[git] + (inputs or []), outputs=[storageResource(taskName)], steps=steps, **kwargs)
     return taskName
 
-def ko(git, name, ko_docker_repo, *args, ldflags=None, ko_image="mesosphere/ko:1.0.0", inputs=None, tags=None, **kwargs):
+def ko(git, image_name, name, *args, ldflags=None, ko_image="mesosphere/ko:pr-427", inputs=None, tag=None, **kwargs):
     """
     Build a Docker container for a Go binary using ko.
     """
     taskName = "{}-ko".format(name)
 
+    if not tag:
+        tag = "$(context.build.name)"
+
     imageResource(taskName,
-        url="{}{}:$(context.build.name)".format(name, ko_docker_repo),
+        url="{}:{}".format(image_name, tag),
         digest="$(inputs.resources.{}.digest)".format(taskName))
 
     env = [
         k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
-        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value=ko_docker_repo),
+        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value="-"),
     ]
 
     if ldflags:
         env.append(k8s.corev1.EnvVar(name="GOFLAGS", value="-ldflags={}".format(ldflags)))
-
-    if not tags:
-        tags = "$(context.build.name)"
 
     task(taskName, inputs=[git]+(inputs or []), outputs=[taskName], steps=[
         buildkitContainer(
             name="ko-build",
             image=ko_image,
             command=[
-                "ko", "publish", "--oci-layout-path=./image-output",
-                "--base-import-paths", "--tags", tags, "./cmd/{}".format(name)
+                "ko", "publish", "--oci-layout-path=/workspace/output/{}".format(taskName), "--push=false", "./cmd/{}".format(name)
             ],
             env=env,
             workingDir="/workspace/{}".format(git)
         ),
         k8s.corev1.Container(
-            name="copy-digest",
-            image="alpine",
-            workingDir="/workspace/{}".format(git),
-            command=[ "cp", "./image-output/index.json", "/workspace/output/{}".format(taskName) ]
-        )
+            name = "push",
+            image = "mesosphere/skopeo:pr-427",
+            command = [
+                "skopeo", "copy", "oci:/workspace/output/{}/".format(taskName), "docker://$(outputs.resources.{}.url)".format(taskName)
+            ]
+        ),
+ 
     ], **kwargs)
 
     return taskName

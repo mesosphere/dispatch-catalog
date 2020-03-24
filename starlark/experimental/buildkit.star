@@ -93,13 +93,13 @@ def buildkit(git, image, context=".", dockerfile="Dockerfile", **kwargs):
         ),
         k8s.corev1.Container(
             name = "extract",
-            image = "jbarrickmesosphere/skopeo",
+            image = "mesosphere/skopeo:pr-427",
             command = ["tar", "-xf", "/wd/image.tar", "-C", "/workspace/output/{}/".format(name)],
             volumeMounts = [ k8s.corev1.VolumeMount(name="wd", mountPath="/wd") ]
         ),
         k8s.corev1.Container(
             name = "push",
-            image = "jbarrickmesosphere/skopeo",
+            image = "mesosphere/skopeo:pr-427",
             command = ["skopeo", "copy", "oci:/workspace/output/{}/".format(name), "docker://$(outputs.resources.{}.url)".format(name)]
         ),
     ], volumes = [ volume("wd", emptyDir=k8s.corev1.EmptyDirVolumeSource()) ])
