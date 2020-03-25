@@ -91,8 +91,10 @@ def ko(git, image_name, name, *args, ldflags=None, ko_image="mesosphere/ko:pr-42
     if not tag:
         tag = "$(context.build.name)"
 
+    imageWithTag = "{}:{}".format(image_name, tag)
+
     imageResource(taskName,
-        url="{}:{}".format(image_name, tag),
+        url=image_name,
         digest="$(inputs.resources.{}.digest)".format(taskName))
 
     env = [
@@ -117,7 +119,7 @@ def ko(git, image_name, name, *args, ldflags=None, ko_image="mesosphere/ko:pr-42
             name = "push",
             image = "mesosphere/skopeo:pr-427",
             command = [
-                "skopeo", "copy", "oci:/workspace/output/{}/".format(taskName), "docker://$(outputs.resources.{}.url)".format(taskName)
+                "skopeo", "copy", "oci:/workspace/output/{}/".format(taskName), "docker://{}".format(imageWithTag)
             ]
         ),
  

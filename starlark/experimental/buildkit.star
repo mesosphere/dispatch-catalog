@@ -73,7 +73,7 @@ def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.bu
       build_args += ["--opt", "build-arg:{}={}".format(k, v)]
 
     imageResource(name,
-        url=imageWithTag,
+        url=image,
         digest="$(inputs.resources.{}.digest)".format(name))
 
     task(name, inputs = [git]+additional_inputs, outputs = [name], steps=[
@@ -88,7 +88,7 @@ def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.bu
                   + ["--local", "context={}".format(context), "--local", "dockerfile=.",
                   "--output", "type=docker,dest=/wd/image.tar",
                   "--export-cache", "type=inline",
-                  "--import-cache", "type=registry,ref=$(outputs.resources.{}.url)".format(name)],
+                  "--import-cache", "type=registry,ref={}".format(imageWithTag)],
             volumeMounts = [ k8s.corev1.VolumeMount(name="wd", mountPath="/wd") ]
         ),
         k8s.corev1.Container(
@@ -100,7 +100,7 @@ def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.bu
         k8s.corev1.Container(
             name = "push",
             image = "mesosphere/skopeo:pr-427",
-            command = ["skopeo", "copy", "oci:/workspace/output/{}/".format(name), "docker://$(outputs.resources.{}.url)".format(name)]
+            command = ["skopeo", "copy", "oci:/workspace/output/{}/".format(name), "docker://{}".format(imageWithTag)]
         ),
     ], volumes = [ volume("wd", emptyDir=k8s.corev1.EmptyDirVolumeSource()) ])
 
