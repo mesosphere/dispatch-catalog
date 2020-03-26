@@ -30,7 +30,7 @@ dindTask("build", inputs=[ git ], outputs=[ git ], steps=[
         command=[
             "/bin/bash", "-c", "cp -r /workspace/{src}/. /workspace/output/{src}/".format(src=git)
         ]
-    )]
+    )
 ])
 
 task("post-merge-updates",
