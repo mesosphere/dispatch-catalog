@@ -1,8 +1,8 @@
-#!starlark
+#!mesosphere/dispatch-starlark:v0.2-test.2
 # vi:syntax=python
 
-load("github.com/jbarrick-mesosphere/catalog/starlark/stable/docker@master", "dindTask")
-load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "gitResource", "secretVar", "pullRequest", "push")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/docker@0.0.3", "dindTask")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.3", "gitResource", "secretVar", "pullRequest", "push")
 
 git = gitResource("git")
 
@@ -13,7 +13,7 @@ dindTask("build", inputs=[ git ], outputs=[ git ], steps=[
         command=[ 
             "/bin/sh", "-c",
             """
-            curl -Lo /usr/bin/dispatch https://d2iq-dispatch.s3.amazonaws.com/dispatch_linux_1.0.0
+            curl -Lo /usr/bin/dispatch https://d2iq-dispatch.s3.amazonaws.com/dispatch_linux_1.1.0-beta1
             chmod +x /usr/bin/dispatch
 
             make build
@@ -22,6 +22,13 @@ dindTask("build", inputs=[ git ], outputs=[ git ], steps=[
         env=[
             k8s.corev1.EnvVar(name="SCM_TOKEN", valueFrom=secretVar("scmtoken", "password")),
             k8s.corev1.EnvVar(name="SCM_USERNAME", valueFrom=secretVar("scmtoken", "username")),
+        ]
+    ), k8s.corev1.Container(
+        name="stash-output",
+        image="debian:buster",
+        workingDir="/workspace/{}".format(git),
+        command=[
+            "/bin/bash", "-c", "cp -r /workspace/{src}/. /workspace/output/{src}/".format(src=git)
         ]
     )
 ])
@@ -61,4 +68,5 @@ task("post-merge-updates",
 )
 
 action(tasks=["build"], on=pullRequest())
+action(tasks=["build"], on=pullRequest(chatops=["build"]))
 action(tasks=["post-merge-updates"], on=push(branches=["master"], paths=[ "!docs/*" ]))
