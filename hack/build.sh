@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 function build {
     mkdir -p ./docs/starlark/$1
