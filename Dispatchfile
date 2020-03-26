@@ -17,6 +17,8 @@ dindTask("build", inputs=[ git ], outputs=[ git ], steps=[
             chmod +x /usr/bin/dispatch
 
             make build
+
+            git status
             """
         ],
         env=[
