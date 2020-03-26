@@ -69,4 +69,4 @@ task("post-merge-updates",
 
 action(tasks=["build"], on=pullRequest())
 action(tasks=["build"], on=pullRequest(chatops=["build"]))
-action(tasks=["post-merge-updates"], on=push(branches=["master"], paths=[ "!docs/*" ]))
+action(tasks=["post-merge-updates"], on=push(branches=["master"], paths=[ "!docs/**/*.md" ]))
