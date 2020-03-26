@@ -17,15 +17,20 @@ dindTask("build", inputs=[ git ], outputs=[ git ], steps=[
             chmod +x /usr/bin/dispatch
 
             make build
-
-            git status
             """
         ],
         env=[
             k8s.corev1.EnvVar(name="SCM_TOKEN", valueFrom=secretVar("scmtoken", "password")),
             k8s.corev1.EnvVar(name="SCM_USERNAME", valueFrom=secretVar("scmtoken", "username")),
         ]
-    )
+    ), k8s.corev1.Container(
+        name="stash-output",
+        image="debian:buster",
+        workingDir="/workspace/{}".format(git),
+        command=[
+            "/bin/bash", "-c", "cp -r /workspace/{src}/. /workspace/output/{src}/".format(src=git)
+        ]
+    )]
 ])
 
 task("post-merge-updates",
