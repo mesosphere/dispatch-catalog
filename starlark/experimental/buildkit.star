@@ -61,7 +61,7 @@ buildctl --debug --addr=tcp://buildkitd.buildkit:1234 build --progress=plain --f
         ],
         **kwargs)
 
-def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.build.name)", **kwargs):
+def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.build.name)", steps=None, **kwargs):
     """
     Build a Docker image using Buildkit.
     """
@@ -76,7 +76,7 @@ def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.bu
         url=image,
         digest="$(inputs.resources.{}.digest)".format(name))
 
-    task(name, inputs = [git]+additional_inputs, outputs = [name], steps=[
+    task(name, inputs = [git]+additional_inputs, outputs = [name], steps=(steps or []) + [
         k8s.corev1.Container(
             name = "build",
             image = "moby/buildkit:v0.6.2",
