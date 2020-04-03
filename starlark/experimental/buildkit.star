@@ -61,22 +61,26 @@ buildctl --debug --addr=tcp://buildkitd.buildkit:1234 build --progress=plain --f
         ],
         **kwargs)
 
-def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.build.name)", steps=None, **kwargs):
+def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.build.name)", steps=None, buildArgs=None, buildEnv=None, inputs=None, **kwargs):
     """
     Build a Docker image using Buildkit.
     """
     imageWithTag = "{}:{}".format(image, tag)
     name = clean(image)
-    build_args = []
-    additional_inputs = kwargs.get("inputs",[])
-    for k, v in kwargs.get("buildArgs", {}).items():
-      build_args += ["--opt", "build-arg:{}={}".format(k, v)]
 
     imageResource(name,
         url=image,
         digest="$(inputs.resources.{}.digest)".format(name))
 
-    task(name, inputs = [git]+additional_inputs, outputs = [name], steps=(steps or []) + [
+    build_args = []
+
+    for k, v in (buildArgs or  {}).items():
+      build_args += ["--opt", "build-arg:{}={}".format(k, v)]
+
+    for k, v in (buildEnv or {}).items():
+      build_args += ["--opt", "build-env:{}={}".format(k, v)]
+
+    task(name, inputs = [git] + (inputs or []), outputs = [name], steps=(steps or []) + [
         k8s.corev1.Container(
             name = "build",
             image = "moby/buildkit:v0.6.2",
@@ -86,9 +90,7 @@ def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.bu
                   "--progress=plain", "--frontend=dockerfile.v0",
                   "--opt", "filename={}".format(dockerfile)] + build_args
                   + ["--local", "context={}".format(context), "--local", "dockerfile=.",
-                  "--output", "type=docker,dest=/wd/image.tar",
-                  "--export-cache", "type=inline",
-                  "--import-cache", "type=registry,ref={}".format(imageWithTag)],
+                  "--output", "type=docker,dest=/wd/image.tar"],
             volumeMounts = [ k8s.corev1.VolumeMount(name="wd", mountPath="/wd") ]
         ),
         k8s.corev1.Container(
