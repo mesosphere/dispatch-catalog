@@ -5,12 +5,12 @@ This module provides methods useful for crafting the basic Dispatch pipeline res
 
 Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline`
 
-### tag(**kwargs)
+### push(**kwargs)
 
 
-A sugar function for creating a new tag condition.
+A sugar function for creating a new push condition.
 
-Example usage: `action(tasks = ["test"], on = tag())`
+Example usage: `action(tasks = ["test"], on = push(branches = ["master"]))`
 
 
 ### pullRequest(**kwargs)
@@ -21,10 +21,12 @@ A sugar function for creating a new pull request condition.
 Example usage: `action(tasks = ["test"], on = pullRequest(chatops=["build"]))`
 
 
-### volume(name, **kwargs)
+### gitResource(name, url, revision, pipeline)
 
 
-Create a new volume given a volume source.
+Define a new git resource in a pipeline.
+
+Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
 
 
 ### resourceVar(name, key)
@@ -53,20 +55,12 @@ Create a new S3 resource using the Dispatch default s3 configuration file.
 Sanitize a name for passing in to Kubernetes / Dispatch.
 
 
-### push(**kwargs)
+### tag(**kwargs)
 
 
-A sugar function for creating a new push condition.
+A sugar function for creating a new tag condition.
 
-Example usage: `action(tasks = ["test"], on = push(branches = ["master"]))`
-
-
-### gitResource(name, url, revision, pipeline)
-
-
-Define a new git resource in a pipeline.
-
-Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
+Example usage: `action(tasks = ["test"], on = tag())`
 
 
 ### imageResource(name, url, digest, pipeline)
@@ -75,6 +69,12 @@ Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context
 Define a new image resource in a pipeline.
 
 Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
+
+
+### volume(name, **kwargs)
+
+
+Create a new volume given a volume source.
 
 
 
