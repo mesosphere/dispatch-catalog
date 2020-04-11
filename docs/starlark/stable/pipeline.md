@@ -21,24 +21,18 @@ A sugar function for creating a new pull request condition.
 Example usage: `action(tasks = ["test"], on = pullRequest(chatops=["build"]))`
 
 
-### imageResource(name, url, digest, pipeline)
-
-
-Define a new image resource in a pipeline.
-
-Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
-
-
 ### volume(name, **kwargs)
 
 
 Create a new volume given a volume source.
 
 
-### resourceVar(name, key)
+### secretVar(name, key)
 
 
-Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
+Convenience function for adding an environment variable from a Kubernetes secret.
+
+Example usage: `k8s.corev1.EnvVar(name="GITHUB_TOKEN", valueFrom=secretVar("scmtoken", "password"))`
 
 
 ### storageResource(name)
@@ -63,12 +57,18 @@ Define a new git resource in a pipeline.
 Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
 
 
-### secretVar(name, key)
+### imageResource(name, url, digest, pipeline)
 
 
-Convenience function for adding an environment variable from a Kubernetes secret.
+Define a new image resource in a pipeline.
 
-Example usage: `k8s.corev1.EnvVar(name="GITHUB_TOKEN", valueFrom=secretVar("scmtoken", "password"))`
+Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
+
+
+### resourceVar(name, key)
+
+
+Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
 
 
 ### clean(name)
