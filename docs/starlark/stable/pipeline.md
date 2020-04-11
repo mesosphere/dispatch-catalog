@@ -5,28 +5,6 @@ This module provides methods useful for crafting the basic Dispatch pipeline res
 
 Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline`
 
-### imageResource(name, url, digest, pipeline)
-
-
-Define a new image resource in a pipeline.
-
-Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
-
-
-### resourceVar(name, key)
-
-
-Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
-
-
-### push(**kwargs)
-
-
-A sugar function for creating a new push condition.
-
-Example usage: `action(tasks = ["test"], on = push(branches = ["master"]))`
-
-
 ### pullRequest(**kwargs)
 
 
@@ -43,20 +21,6 @@ Define a new git resource in a pipeline.
 Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
 
 
-### clean(name)
-
-
-Sanitize a name for passing in to Kubernetes / Dispatch.
-
-
-### tag(**kwargs)
-
-
-A sugar function for creating a new tag condition.
-
-Example usage: `action(tasks = ["test"], on = tag())`
-
-
 ### volume(name, **kwargs)
 
 
@@ -71,10 +35,46 @@ Convenience function for adding an environment variable from a Kubernetes secret
 Example usage: `k8s.corev1.EnvVar(name="GITHUB_TOKEN", valueFrom=secretVar("scmtoken", "password"))`
 
 
+### push(**kwargs)
+
+
+A sugar function for creating a new push condition.
+
+Example usage: `action(tasks = ["test"], on = push(branches = ["master"]))`
+
+
+### tag(**kwargs)
+
+
+A sugar function for creating a new tag condition.
+
+Example usage: `action(tasks = ["test"], on = tag())`
+
+
+### imageResource(name, url, digest, pipeline)
+
+
+Define a new image resource in a pipeline.
+
+Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
+
+
+### resourceVar(name, key)
+
+
+Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
+
+
 ### storageResource(name)
 
 
 Create a new S3 resource using the Dispatch default s3 configuration file.
+
+
+### clean(name)
+
+
+Sanitize a name for passing in to Kubernetes / Dispatch.
 
 
 
