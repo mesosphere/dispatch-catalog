@@ -13,24 +13,24 @@ A sugar function for creating a new push condition.
 Example usage: `action(tasks = ["test"], on = push(branches = ["master"]))`
 
 
-### imageResource(name, url, digest, pipeline)
+### gitResource(name, url, revision, pipeline)
 
 
-Define a new image resource in a pipeline.
+Define a new git resource in a pipeline.
 
-Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
-
-
-### storageResource(name)
-
-
-Create a new S3 resource using the Dispatch default s3 configuration file.
+Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
 
 
 ### clean(name)
 
 
 Sanitize a name for passing in to Kubernetes / Dispatch.
+
+
+### storageResource(name)
+
+
+Create a new S3 resource using the Dispatch default s3 configuration file.
 
 
 ### tag(**kwargs)
@@ -49,12 +49,12 @@ A sugar function for creating a new pull request condition.
 Example usage: `action(tasks = ["test"], on = pullRequest(chatops=["build"]))`
 
 
-### gitResource(name, url, revision, pipeline)
+### imageResource(name, url, digest, pipeline)
 
 
-Define a new git resource in a pipeline.
+Define a new image resource in a pipeline.
 
-Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
+Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
 
 
 ### volume(name, **kwargs)
