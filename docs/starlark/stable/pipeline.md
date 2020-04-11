@@ -5,20 +5,6 @@ This module provides methods useful for crafting the basic Dispatch pipeline res
 
 Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline`
 
-### gitResource(name, url, revision, pipeline)
-
-
-Define a new git resource in a pipeline.
-
-Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
-
-
-### resourceVar(name, key)
-
-
-Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
-
-
 ### secretVar(name, key)
 
 
@@ -41,20 +27,12 @@ A sugar function for creating a new push condition.
 Example usage: `action(tasks = ["test"], on = push(branches = ["master"]))`
 
 
-### tag(**kwargs)
+### gitResource(name, url, revision, pipeline)
 
 
-A sugar function for creating a new tag condition.
+Define a new git resource in a pipeline.
 
-Example usage: `action(tasks = ["test"], on = tag())`
-
-
-### pullRequest(**kwargs)
-
-
-A sugar function for creating a new pull request condition.
-
-Example usage: `action(tasks = ["test"], on = pullRequest(chatops=["build"]))`
+Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
 
 
 ### imageResource(name, url, digest, pipeline)
@@ -75,6 +53,28 @@ Create a new volume given a volume source.
 
 
 Create a new S3 resource using the Dispatch default s3 configuration file.
+
+
+### tag(**kwargs)
+
+
+A sugar function for creating a new tag condition.
+
+Example usage: `action(tasks = ["test"], on = tag())`
+
+
+### pullRequest(**kwargs)
+
+
+A sugar function for creating a new pull request condition.
+
+Example usage: `action(tasks = ["test"], on = pullRequest(chatops=["build"]))`
+
+
+### resourceVar(name, key)
+
+
+Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
 
 
 
