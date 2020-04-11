@@ -13,24 +13,12 @@ A sugar function for creating a new pull request condition.
 Example usage: `action(tasks = ["test"], on = pullRequest(chatops=["build"]))`
 
 
-### gitResource(name, url, revision, pipeline)
+### imageResource(name, url, digest, pipeline)
 
 
-Define a new git resource in a pipeline.
+Define a new image resource in a pipeline.
 
-Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
-
-
-### resourceVar(name, key)
-
-
-Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
-
-
-### storageResource(name)
-
-
-Create a new S3 resource using the Dispatch default s3 configuration file.
+Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
 
 
 ### secretVar(name, key)
@@ -63,18 +51,30 @@ A sugar function for creating a new tag condition.
 Example usage: `action(tasks = ["test"], on = tag())`
 
 
-### imageResource(name, url, digest, pipeline)
+### gitResource(name, url, revision, pipeline)
 
 
-Define a new image resource in a pipeline.
+Define a new git resource in a pipeline.
 
-Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
+Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
 
 
 ### volume(name, **kwargs)
 
 
 Create a new volume given a volume source.
+
+
+### resourceVar(name, key)
+
+
+Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
+
+
+### storageResource(name)
+
+
+Create a new S3 resource using the Dispatch default s3 configuration file.
 
 
 
