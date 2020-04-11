@@ -13,20 +13,12 @@ A sugar function for creating a new push condition.
 Example usage: `action(tasks = ["test"], on = push(branches = ["master"]))`
 
 
-### imageResource(name, url, digest, pipeline)
+### tag(**kwargs)
 
 
-Define a new image resource in a pipeline.
+A sugar function for creating a new tag condition.
 
-Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
-
-
-### secretVar(name, key)
-
-
-Convenience function for adding an environment variable from a Kubernetes secret.
-
-Example usage: `k8s.corev1.EnvVar(name="GITHUB_TOKEN", valueFrom=secretVar("scmtoken", "password"))`
+Example usage: `action(tasks = ["test"], on = tag())`
 
 
 ### storageResource(name)
@@ -57,6 +49,14 @@ Define a new git resource in a pipeline.
 Example usage: `gitResource("git", url="$(context.git.url)", revision="$(context.git.commit)")`
 
 
+### imageResource(name, url, digest, pipeline)
+
+
+Define a new image resource in a pipeline.
+
+Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
+
+
 ### volume(name, **kwargs)
 
 
@@ -69,12 +69,12 @@ Create a new volume given a volume source.
 Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
 
 
-### tag(**kwargs)
+### secretVar(name, key)
 
 
-A sugar function for creating a new tag condition.
+Convenience function for adding an environment variable from a Kubernetes secret.
 
-Example usage: `action(tasks = ["test"], on = tag())`
+Example usage: `k8s.corev1.EnvVar(name="GITHUB_TOKEN", valueFrom=secretVar("scmtoken", "password"))`
 
 
 
