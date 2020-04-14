@@ -3,7 +3,11 @@
 
 Provides methods for building and testing Go modules.
 
-Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/go`
+To import, add the following to your Dispatchfile:
+
+```
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/go@0.0.4", "ko")
+```
 
 ### ko(git, image_name, name, ldflags, ko_image, inputs, tag, *args, **kwargs)
 

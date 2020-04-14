@@ -1,6 +1,7 @@
 # vi:syntax=python
 
 load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@master", "imageResource", "storageResource", "resourceVar")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@master", "buildkitContainer")
 
 __doc__ = """
 # Go
@@ -10,8 +11,9 @@ Provides methods for building and testing Go modules.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/go@0.0.4", "ko")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.4", "ko")
 ```
+
 """
 
 def go_test(git, name, paths=None, image="golang:1.13.0-buster", inputs=None, **kwargs):
@@ -25,7 +27,7 @@ def go_test(git, name, paths=None, image="golang:1.13.0-buster", inputs=None, **
     taskName = "{}-test".format(name)
 
     task(taskName, inputs=[git] + (inputs or []), outputs=[ storageResource(taskName) ], steps=[
-        k8s.corev1.Container(
+        buildkitContainer(
             name="go-test-{}".format(name),
             image=image,
             command=[ "go", "test", "-v", "-coverprofile", "/workspace/output/{}/coverage.out".format(taskName) ] + paths,
@@ -69,7 +71,7 @@ def go(git, name, ldflags=None, os=None, image="golang:1.13.0-buster", inputs=No
     steps = []
 
     for os_name in os:
-        steps.append(k8s.corev1.Container(
+        steps.append(buildkitContainer(
             name="go-build-{}".format(os_name),
             image=image,
             command=command + [
@@ -106,7 +108,7 @@ def ko(git, image_name, name, *args, ldflags=None, ko_image="mesosphere/ko:1.1.0
         env.append(k8s.corev1.EnvVar(name="GOFLAGS", value="-ldflags={}".format(ldflags)))
 
     task(taskName, inputs=[git]+(inputs or []), outputs=[taskName], steps=[
-        k8s.corev1.Container(
+        buildkitContainer(
             name="ko-build",
             image=ko_image,
             command=[

@@ -7,7 +7,12 @@ __doc__ = """
 
 Provides methods for using Docker.
 
-Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/docker`
+To import, add the following to your Dispatchfile:
+
+```
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/docker@0.0.4", "dindTask")
+```
+
 """
 
 
