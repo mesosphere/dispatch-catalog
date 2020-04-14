@@ -19,7 +19,7 @@ def go_test(git, name, paths=None, image="golang:1.13.0-buster", inputs=None, **
     Run Go tests and generate a coverage report.
     """
 
-    if not paths:
+    if paths is None:
         paths = []
 
     taskName = "{}-test".format(name)
