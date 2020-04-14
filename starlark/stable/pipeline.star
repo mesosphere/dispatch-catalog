@@ -5,7 +5,12 @@ __doc__ = """
 
 This module provides methods useful for crafting the basic Dispatch pipeline resources in Starlark.
 
-Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline`
+To import, add the following to your Dispatchfile:
+
+```
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.4", "gitResource")
+```
+
 """
 
 def push(**kwargs):

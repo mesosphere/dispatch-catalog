@@ -7,7 +7,12 @@ __doc__ = """
 
 Provides methods for building Docker containers using Kaniko.
 
-Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/kaniko`
+To import, add the following to your Dispatchfile:
+
+```
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/kaniko@0.0.4", "kaniko")
+```
+
 """
 
 def kaniko(git, image, context="", dockerfile="Dockerfile", **kwargs):

@@ -7,7 +7,11 @@ __doc__ = """
 
 Provides methods for building and testing Go modules.
 
-Import URL: `github.com/mesosphere/dispatch-catalog/starlark/stable/go`
+To import, add the following to your Dispatchfile:
+
+```
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/go@0.0.4", "ko")
+```
 """
 
 def go_test(git, name, paths=None, image="golang:1.13.0-buster", inputs=None, **kwargs):

@@ -7,7 +7,12 @@ __doc__ = """
 
 Provides methods for interacting with a Buildkit instance.
 
-Import URL: `github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit`
+To import, add the following to your Dispatchfile:
+
+```
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.4", "buildkit")
+```
+
 """
 
 def buildkitContainer(name, image, workingDir, command, output=True, **kwargs):
