@@ -74,7 +74,7 @@ def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.bu
 
     build_args = []
 
-    for k, v in (buildArgs or  {}).items():
+    for k, v in (buildArgs or {}).items():
       build_args += ["--opt", "build-arg:{}={}".format(k, v)]
 
     for k, v in (buildEnv or {}).items():
@@ -107,4 +107,3 @@ def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.bu
     ], volumes = [ volume("wd", emptyDir=k8s.corev1.EmptyDirVolumeSource()) ])
 
     return name
-
