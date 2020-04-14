@@ -1,4 +1,4 @@
 # experimental Starlark Modules
 
-* [go](go.md)
 * [buildkit](buildkit.md)
+* [go](go.md)
