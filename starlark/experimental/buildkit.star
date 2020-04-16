@@ -66,12 +66,12 @@ buildctl --debug --addr=tcp://buildkitd.buildkit:1234 build --progress=plain --f
         ],
         **kwargs)
 
-def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.build.name)", steps=None, buildArgs=None, buildEnv=None, inputs=None, **kwargs):
+def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.build.name)", steps=None, buildArgs=None, buildEnv=None, inputs=None, name=None **kwargs):
     """
     Build a Docker image using Buildkit.
     """
     imageWithTag = "{}:{}".format(image, tag)
-    name = clean(image)
+    name = (name or clean(image))
 
     imageResource(name,
         url=image,
