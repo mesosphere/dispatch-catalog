@@ -104,11 +104,11 @@ def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.bu
             command = ["tar", "-xf", "/wd/image.tar", "-C", "/workspace/output/{}/".format(name)],
             volumeMounts = [ k8s.corev1.VolumeMount(name="wd", mountPath="/wd") ]
         ),
-        k8s.corev1.Container(
-            name = "push",
-            image = "mesosphere/skopeo:pr-427",
-            command = ["skopeo", "copy", "oci:/workspace/output/{}/".format(name), "docker://{}".format(imageWithTag)]
-        ),
+        #k8s.corev1.Container(
+        #    name = "push",
+        #    image = "mesosphere/skopeo:pr-427",
+        #    command = ["skopeo", "copy", "oci:/workspace/output/{}/".format(name), "docker://{}".format(imageWithTag)]
+        #),
     ], volumes = [ volume("wd", emptyDir=k8s.corev1.EmptyDirVolumeSource()) ])
 
     return name
