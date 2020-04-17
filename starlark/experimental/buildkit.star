@@ -1,6 +1,6 @@
 # vi:syntax=python
 
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@master", "clean", "imageResource", "volume")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@chhsiao/dsl-name", "sanitize", "image_resource", "git_checkout_dir")
 
 __doc__ = """
 # Buildkit
@@ -10,105 +10,120 @@ Provides methods for interacting with a Buildkit instance.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.4", "buildkit")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@chhsiao/dsl-name", "buildkit")
 ```
 
 """
 
-def buildkitContainer(name, image, workingDir, command, output=True, **kwargs):
+def buildkit_container(name, image, workingDir, command, output_paths=[], **kwargs):
     """
-    buildkitContainer returns a Kubernetes corev1.Container that runs inside of buildkit.
+    buildkit_container returns a Kubernetes corev1.Container that runs inside of buildkit.
     The container can take advantage of buildkit's cache mount feature as the cache is mounted into /cache.
     """
 
-    envStr = ""
+    env = ""
+    for env_var in kwargs.get("env", []):
+        env += "ENV {} {}\n".format(env_var.name, env_var.value)
 
-    for envVar in kwargs.get("env", []):
-        envStr += "ENV {} {}\n".format(envVar.name, envVar.value)
+    add_outputs = ""
+    copy_outputs = ""
+    for output in output_paths:
+        add_outputs += "ADD {output} {output}".format(output = output)
+        copy_outputs += "COPY --from=0 {output} {output}".format(output = output)
 
     dockerfile = """
-cat > /tmp/Dockerfile.buildkit <<EOF
 # syntax = docker/dockerfile:experimental
 FROM {image}
-WORKDIR {workingDir}
+WORKDIR {working_dir}
 ENV GOCACHE /cache/go-cache
 ENV GOPATH /cache/go
 ENV DOCKER_CONFIG /tekton/home/.docker
-{envStr}
+{env}
 ADD /tekton/home/.docker /tekton/home/.docker
-"""
-
-    if output:
-        dockerfile += "ADD /workspace/output/ /workspace/output/"
-
-    dockerfile += """
-ADD {workingDir} {workingDir}
+{add_outputs}
+ADD {working_dir} {working_dir}
 RUN --mount=type=cache,target=/cache {command}
+
 FROM scratch
-"""
-
-    if output:
-        dockerfile += "COPY --from=0 /workspace/output/ /workspace/output/"
-
-    dockerfile += """
-COPY --from=0 {workingDir} {workingDir}
-EOF
-buildctl --debug --addr=tcp://buildkitd.buildkit:1234 build --progress=plain --frontend=dockerfile.v0 \
-    --opt filename=Dockerfile.buildkit --local context=/ --local dockerfile=/tmp/ --output type=local,dest=/
-"""
+{copy_outputs}
+COPY --from=0 {working_dir} {working_dir}
+    """.format(
+        image = image,
+        working_dir = workingDir,
+        env = env,
+        add_outputs = add_outputs,
+        command = command,
+        copy_outputs = copy_outputs
+    )
 
     return k8s.corev1.Container(
         name = name,
         image = "moby/buildkit:v0.6.2",
         workingDir = workingDir,
-        command = [
-            "sh", "-c", dockerfile.format(envStr=envStr, name=name, workingDir=workingDir, image=image, command=command)
-        ],
-        **kwargs)
+        command = ["sh", "-c", """
+cat > /tmp/Dockerfile.buildkit <<EOF
+{}
+EOF
+buildctl build \
+    --debug \
+    --addr=tcp://buildkitd.buildkit:1234 \
+    --progress=plain \
+    --frontend=dockerfile.v0 \
+    --local context=/ \
+    --local dockerfile=/tmp \
+    --output type=local,dest=/
+    --opt filename=Dockerfile.buildkit
+        """.format(dockerfile)],
+        **kwargs
+    )
 
-def buildkit(git, image, context=".", dockerfile="Dockerfile", tag="$(context.build.name)", steps=None, buildArgs=None, buildEnv=None, inputs=None, **kwargs):
+def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", context=".", dockerfile="Dockerfile", build_args={}, build_env={}, **kwargs):
     """
     Build a Docker image using Buildkit.
     """
-    imageWithTag = "{}:{}".format(image, tag)
-    name = clean(image)
+    image_name = image_resource("image-" + sanitize(image_repo)[-57:], url = image_repo + ":" + tag) 
 
-    imageResource(name,
-        url=image,
-        digest="$(inputs.resources.{}.digest)".format(name))
+    command = [
+        "buildctl",
+        "build",
+        "--debug",
+        "--addr=tcp://buildkitd.buildkit:1234",
+        "--progress=plain",
+        "--frontend=dockerfile.v0",
+        "--local", "context={}".format(context),
+        "--local", "dockerfile=.",
+        "--output", "type=docker,dest=/wd/image.tar",
+        "--opt", "filename={}".format(dockerfile)
+    ]
 
-    build_args = []
+    for k, v in build_args.items():
+      command += ["--opt", "build-arg:{}={}".format(k, v)]
 
-    for k, v in (buildArgs or {}).items():
-      build_args += ["--opt", "build-arg:{}={}".format(k, v)]
+    for k, v in build_env.items():
+      command += ["--opt", "build-env:{}={}".format(k, v)]
 
-    for k, v in (buildEnv or {}).items():
-      build_args += ["--opt", "build-env:{}={}".format(k, v)]
-
-    task(name, inputs = [git] + (inputs or []), outputs = [name], steps=(steps or []) + [
+    kwargs.setdefault("inputs", []).append(git_name)
+    kwargs.setdefault("outputs", []).append(image_name)
+    kwargs.setdefault("volumes", []).append(k8s.corev1.Volume(name = "buildkit-wd"))
+    kwargs.setdefault("steps", []).extend([
         k8s.corev1.Container(
             name = "build",
             image = "moby/buildkit:v0.6.2",
-            workingDir = "/workspace/{}/".format(git),
-            command = ["buildctl", "--debug",
-                  "--addr=tcp://buildkitd.buildkit:1234", "build",
-                  "--progress=plain", "--frontend=dockerfile.v0",
-                  "--opt", "filename={}".format(dockerfile)] + build_args
-                  + ["--local", "context={}".format(context), "--local", "dockerfile=.",
-                  "--output", "type=docker,dest=/wd/image.tar"],
-            volumeMounts = [ k8s.corev1.VolumeMount(name="wd", mountPath="/wd") ]
+            workingDir = git_checkout_dir(git_name),
+            command = command,
+            volumeMounts = [k8s.corev1.VolumeMount(name = "wd", mountPath = "/wd")]
         ),
         k8s.corev1.Container(
-            name = "extract",
-            image = "mesosphere/skopeo:pr-427",
-            command = ["tar", "-xf", "/wd/image.tar", "-C", "/workspace/output/{}/".format(name)],
-            volumeMounts = [ k8s.corev1.VolumeMount(name="wd", mountPath="/wd") ]
-        ),
-        k8s.corev1.Container(
-            name = "push",
-            image = "mesosphere/skopeo:pr-427",
-            command = ["skopeo", "copy", "oci:/workspace/output/{}/".format(name), "docker://{}".format(imageWithTag)]
-        ),
-    ], volumes = [ volume("wd", emptyDir=k8s.corev1.EmptyDirVolumeSource()) ])
+            name = "extract-and-push",
+            image = "gcr.io/tekton-releases/dogfooding/skopeo:latest",
+            command = ["sh", "-c", """
+                tar -xf /wd/image.tar -C $(resources.outputs.{name}.path)/
+                skopeo copy oci:$(resources.outputs.{name}.path)/ docker://$(resources.outputs.{name}.url)
+            """.format(name = image_name)],
+            volumeMounts = [k8s.corev1.VolumeMount(name = "buildkit-wd", mountPath = "/wd")]
+        )
+    ])
 
-    return name
+    task(task_name, **kwargs)
+
+    return image_name
