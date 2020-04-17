@@ -1,7 +1,7 @@
 # vi:syntax=python
 
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@master", "imageResource", "storageResource", "resourceVar")
-load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@master", "buildkitContainer")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@chhsiao/dsl-name", "git_checkout_dir", "image_resource", "sanitize", "storageResource", "resourceVar")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@chhsiao/dsl-name", "buildkit_container")
 
 __doc__ = """
 # Go
@@ -27,7 +27,7 @@ def go_test(git, name, paths=None, image="golang:1.13.0-buster", inputs=None, **
     taskName = "{}-test".format(name)
 
     task(taskName, inputs=[git] + (inputs or []), outputs=[ storageResource(taskName) ], steps=[
-        buildkitContainer(
+        buildkit_container(
             name="go-test-{}".format(name),
             image=image,
             command=[ "go", "test", "-v", "-coverprofile", "/workspace/output/{}/coverage.out".format(taskName) ] + paths,
@@ -71,7 +71,7 @@ def go(git, name, ldflags=None, os=None, image="golang:1.13.0-buster", inputs=No
     steps = []
 
     for os_name in os:
-        steps.append(buildkitContainer(
+        steps.append(buildkit_container(
             name="go-build-{}".format(os_name),
             image=image,
             command=command + [
@@ -87,44 +87,49 @@ def go(git, name, ldflags=None, os=None, image="golang:1.13.0-buster", inputs=No
     task(taskName, inputs=[git] + (inputs or []), outputs=[storageResource(taskName)], steps=steps, **kwargs)
     return taskName
 
-def ko(git, image_name, name, *args, ldflags=None, ko_image="mesosphere/ko:1.1.0-beta1", inputs=None, tag="$(context.build.name)", **kwargs):
+def ko(task_name, git_name, image_repo, package, tag="$(context.build.name)", ldflags=None, **kwargs):
     """
     Build a Docker container for a Go binary using ko.
     """
-    taskName = "{}-ko".format(name)
-
-    imageWithTag = "{}:{}".format(image_name, tag)
-
-    imageResource(taskName,
-        url=image_name,
-        digest="$(inputs.resources.{}.digest)".format(taskName))
+    image_name = image_resource("image-" + sanitize(image_repo)[-57:], url = image_repo + ":" + tag)
 
     env = [
-        k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
-        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value="-"),
+        k8s.corev1.EnvVar(name = "GO111MODULE", value = "on"),
+        k8s.corev1.EnvVar(name = "KO_DOCKER_REPO", value = "-"),
     ]
 
     if ldflags:
-        env.append(k8s.corev1.EnvVar(name="GOFLAGS", value="-ldflags={}".format(ldflags)))
+        env.append(k8s.corev1.EnvVar(name = "GOFLAGS", value = "-ldflags={}".format(ldflags)))
 
-    task(taskName, inputs=[git]+(inputs or []), outputs=[taskName], steps=[
-        buildkitContainer(
-            name="ko-build",
-            image=ko_image,
-            command=[
-                "ko", "publish", "--oci-layout-path=/workspace/output/{}".format(taskName), "--push=false", "./cmd/{}".format(name)
+    kwargs.setdefault("inputs", []).append(git_name)
+    kwargs.setdefault("outputs", []).append(image_name)
+    kwargs.setdefault("steps", []).extend([
+        buildkit_container(
+            name = "build",
+            image = "gcr.io/tekton-releases/dogfooding/ko:latest",
+            command = [
+                "ko",
+                "publish",
+                "--oci-layout-path=$(resources.outputs.{}.path)".format(image_name),
+                "--push=false",
+                package
             ],
-            env=env,
-            workingDir="/workspace/{}".format(git)
+            env = env,
+            workingDir = git_checkout_dir(git_name),
+            output_paths = ["$(resources.outputs.{}.path)".format(image_name)]
         ),
         k8s.corev1.Container(
             name = "push",
-            image = "mesosphere/skopeo:1.1.0-beta1",
+            image = "gcr.io/tekton-releases/dogfooding/skopeo:latest",
             command = [
-                "skopeo", "copy", "oci:/workspace/output/{}/".format(taskName), "docker://{}".format(imageWithTag)
+                "skopeo",
+                "copy",
+                "oci:$(resources.outputs.{}.path)/".format(image_name),
+                "docker://$(resources.outputs.{}.url)".format(image_name)
             ]
-        ),
- 
-    ], **kwargs)
+        )
+    ])
 
-    return taskName
+    task(task_name, **kwargs)
+
+    return image_name
