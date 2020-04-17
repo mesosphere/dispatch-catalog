@@ -37,7 +37,13 @@ def pullRequest(**kwargs):
     """
     return p.Condition(pull_request=p.PullRequestCondition(**kwargs))
 
-def gitResource(name, url="$(context.git.url)", revision="$(context.git.commit)", pipeline=None):
+def gitResource(*args, **kwargs):
+    """
+    DEPRECATED: Use git_resource instead.
+    """
+    return git_resource(*args, **kwargs)
+
+def git_resource(name, url="$(context.git.url)", revision="$(context.git.commit)", pipeline=None):
     """
     Define a new git resource in a pipeline.
 
@@ -46,19 +52,26 @@ def gitResource(name, url="$(context.git.url)", revision="$(context.git.commit)"
     resource(name, type = "git", params = {
         "url": url,
         "revision": revision,
-    }, pipeline=pipeline)
+    }, pipeline = pipeline)
     return name
 
-def imageResource(name, url, digest, pipeline=None):
+def image_resource(name, url, digest="", pipeline=None):
     """
     Define a new image resource in a pipeline.
 
     Example usage: `imageResource("my-image", url="mesosphere/dispatch:latest")`
     """
-    return resource(name, type = "image", params = {
+    resource(name, type = "image", params = {
         "url": url,
         "digest": digest
-    }, pipeline=pipeline)
+    }, pipeline = pipeline)
+    return name
+
+def imageResource(*args, **kwargs):
+    """
+    DEPRECATED: Use image_resource instead.
+    """
+    return image_resource(*args, **kwargs)
 
 def volume(name, **kwargs):
     """
@@ -68,9 +81,34 @@ def volume(name, **kwargs):
 
 def resourceVar(name, key):
     """
+    DEPRECATED: Use dedicated resource variable helpers instead.
+
     Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
     """
     return "$(inputs.resources.{}.{})".format(name, key)
+
+def git_revision(name):
+    """
+    Shorthand for input git revision.
+    Returns string "$(resources.inputs.<name>.revision)"
+    """
+    return "$(resources.inputs.{}.revision)".format(name)
+
+def git_checkout_dir(name):
+    """
+    Shorthand for input git checkout directory.
+
+    Returns string "$(resources.inputs.<name>.path)".
+    """
+    return"$(resources.inputs.{}.path)".format(name)
+
+def image_reference(name):
+    """
+    Shorthand for input image reference with digest.
+
+    Returns string "$(resources.inputs.<name>.url)@$(resources.inputs.<name>.digest)".
+    """
+    return "$(resources.inputs.{}.url)@$(resources.inputs.{}.digest)".format(name, name)
 
 def secretVar(name, key):
     """
@@ -93,8 +131,14 @@ def storageResource(name):
 
     return name
 
-def clean(name):
+def sanitize(name):
     """
     Sanitize a name for passing in to Kubernetes / Dispatch.
     """
-    return name.replace("/", "-").replace(":", "-").replace(".", "-")
+    return ''.join([c if c.isalnum() else '-'  for c in name.elems()]).lower()
+
+def clean(name):
+    """
+    DEPRECATED: Use sanitize instead.
+    """
+    return sanitize(name)
