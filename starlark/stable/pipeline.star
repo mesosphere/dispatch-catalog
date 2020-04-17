@@ -31,13 +31,19 @@ def tag(**kwargs):
     """
     return p.Condition(tag=p.TagCondition(**kwargs))
 
-def pullRequest(**kwargs):
+def pull_request(**kwargs):
     """
     A sugar function for creating a new pull request condition.
 
-    Example usage: `action(tasks = ["test"], on = pullRequest(chatops=["build"]))`
+    Example usage: `action(tasks = ["test"], on = pull_request(chatops=["build"]))`
     """
     return p.Condition(pull_request=p.PullRequestCondition(**kwargs))
+
+def pullRequest(**kwargs):
+    """
+    DEPRECATED: Use pull_request instead.
+    """
+    return pull_request(**kwargs)
 
 def git_resource(name, url="$(context.git.url)", revision="$(context.git.commit)", pipeline=None):
     """
@@ -159,3 +165,9 @@ def clean(name):
     DEPRECATED: Use sanitize in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
     """
     return sanitize(name)
+
+def step_output_var(task, step):
+    """
+    Shorthand for a task step variable, returns a string "$(inputs.tasks.<task>.<step>)"
+    """
+    return "$(inputs.tasks.{}.{})".format(task, step)
