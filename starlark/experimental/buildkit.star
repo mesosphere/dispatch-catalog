@@ -10,7 +10,7 @@ Provides methods for interacting with a Buildkit instance.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@chhsiao/dsl-name", "buildkit")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.5", "buildkit")
 ```
 
 """
