@@ -1,6 +1,6 @@
 # vi:syntax=python
 
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@chhsiao/dsl-name", "sanitize", "image_resource", "git_checkout_dir")
+load("/starlark/stable/pipeline", "sanitize", "image_resource", "git_checkout_dir")
 
 __doc__ = """
 # Buildkit
@@ -71,7 +71,7 @@ buildctl build \
     --frontend=dockerfile.v0 \
     --local context=/ \
     --local dockerfile=/tmp \
-    --output type=local,dest=/
+    --output type=local,dest=/ \
     --opt filename=Dockerfile.buildkit
         """.format(dockerfile)],
         **kwargs
