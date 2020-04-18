@@ -135,7 +135,7 @@ def sanitize(name):
     """
     Sanitize a name for passing in to Kubernetes / Dispatch.
     """
-    return ''.join([c if c.isalnum() else '-'  for c in name.elems()]).lower()
+    return ''.join([c if c.isalnum() else '-'  for c in name.strip().elems()]).lower()
 
 def clean(name):
     """

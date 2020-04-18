@@ -1,7 +1,7 @@
 # vi:syntax=python
 
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@chhsiao/dsl-name", "git_checkout_dir", "image_resource", "sanitize", "storageResource", "resourceVar")
-load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@chhsiao/dsl-name", "buildkit_container")
+load("/starlark/stable/pipeline", "git_checkout_dir", "image_resource", "sanitize", "storageResource", "resourceVar")
+load("/starlark/experimental/buildkit", "buildkit_container")
 
 __doc__ = """
 # Go
