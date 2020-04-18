@@ -8,7 +8,7 @@ This module provides methods useful for crafting the basic Dispatch pipeline res
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.4", "gitResource")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.5", "gitResource")
 ```
 
 """
