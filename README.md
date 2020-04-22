@@ -1,6 +1,6 @@
 # Dispatch Catalog
 
-![Image description](./images/dispatch-service-icon--medium.png)
+![Image description](/images/dispatch-service-icon--medium.png)
 
 **Accelerate your CI/CD**
 
