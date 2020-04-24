@@ -17,7 +17,7 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.6", "k
 
 """
 
-def go_test(task_name, git_name, paths=[], image="golang:1.14", **kwargs):
+def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", **kwargs):
     """
     Run Go tests and generate a coverage report.
     """
@@ -47,7 +47,7 @@ diff -uN --label old/coverage.txt --label new/coverage.txt coverage.txt $(resour
 
     return storage_name
 
-def go(task_name, git_name, path, image="golang:1.14", ldflags=None, os=["linux"], arch=["amd64"], **kwargs):
+def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, os=["linux"], arch=["amd64"], **kwargs):
     """
     Build Go binaries.
     """
@@ -55,10 +55,9 @@ def go(task_name, git_name, path, image="golang:1.14", ldflags=None, os=["linux"
     # different runs. We should introduce a mechanism to avoid this.
     storage_name = storage_resource("storage-" + task_name, location = "s3://artifacts/{}/".format(task_name))
 
-    command = ["go", "build"]
-
+    build_args = []
     if ldflags:
-        command += ["-ldflags", ldflags]
+        build_args += ["-ldflags", ldflags]
 
     steps = []
     for goos in os:
@@ -66,7 +65,16 @@ def go(task_name, git_name, path, image="golang:1.14", ldflags=None, os=["linux"
             steps.append(buildkit_container(
                 name = "go-build-{}_{}".format(goos, goarch),
                 image = image,
-                command = command + ["-o", "$(resources.outputs.{}.path)/{}_{}/{}".format(storage_name, goos, goarch, basename(path)), path],
+                command = ["sh", "-c", """
+mkdir -p $(resources.outputs.{storage}.path)/{os}_{arch}/
+go build -o $(resources.outputs.{storage}.path)/{os}_{arch}/ {build_args} {paths}
+                """.format(
+                    storage = storage_name,
+                    os = goos,
+                    arch = goarch,
+                    build_args = " ".join(build_args),
+                    paths = " ".join(paths)
+                )],
                 env = [
                     k8s.corev1.EnvVar(name = "GO111MODULE", value = "on"),
                     k8s.corev1.EnvVar(name = "GOOS", value = goos),
