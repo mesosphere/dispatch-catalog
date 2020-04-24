@@ -1,6 +1,8 @@
 # vi:syntax=python
 
-load("/starlark/stable/pipeline", "git_checkout_dir", "image_resource", "sanitize", "storageResource", "resourceVar")
+load("/starlark/stable/pipeline", "git_checkout_dir", "image_resource", "storage_resource")
+load("/starlark/stable/path", "basename")
+load("/starlark/stable/k8s", "sanitize")
 load("/starlark/experimental/buildkit", "buildkit_container")
 
 __doc__ = """
@@ -11,7 +13,7 @@ Provides methods for building and testing Go modules.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.5", "ko")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.6", "ko")
 ```
 
 """
@@ -26,7 +28,7 @@ def go_test(git, name, paths=None, image="golang:1.13.0-buster", inputs=None, **
 
     taskName = "{}-test".format(name)
 
-    task(taskName, inputs=[git] + (inputs or []), outputs=[ storageResource(taskName) ], steps=[
+    task(taskName, inputs=[git] + (inputs or []), outputs=[ storage_resource(taskName) ], steps=[
         buildkit_container(
             name="go-test-{}".format(name),
             image=image,
@@ -52,42 +54,48 @@ def go_test(git, name, paths=None, image="golang:1.13.0-buster", inputs=None, **
 
     return taskName
 
-def go(git, name, ldflags=None, os=None, image="golang:1.13.0-buster", inputs=None, **kwargs):
+def go(task_name, git_name, path, ldflags=None, os=["linux"], arch=["amd64"], **kwargs):
     """
-    Build a Go binary.
+    Build Go binaries.
     """
+    # TODO(chhsiao): Because the location is deterministic, artifacts will be overwritten by
+    # different runs. We should introduce a mechanism to avoid this.
+    storage_name = "storage-" + sanitize(path)[-55:]
+    storage_resource(storage_name, location = "s3://artifacts/{}/".format(storage_name))
 
-    if not os:
-        os = ['linux']
-
-    taskName = "{}-build".format(name)
-
-
-    command = [ "go", "build" ]
+    command = ["go", "build"]
 
     if ldflags:
         command += ["-ldflags", ldflags]
 
     steps = []
+    for goos in os:
+        for goarch in arch:
+            steps.append(buildkit_container(
+                name = "go-build-{}_{}".format(goos, goarch),
+                image = "golang:1.14",
+                command = command + [
+                    "-o",
+                    "$(resources.outputs.{}.path)/{}_{}/{}".format(storage_name, goos, goarch, basename(path)),
+                    path
+                ],
+                env = [
+                    k8s.corev1.EnvVar(name = "GO111MODULE", value = "on"),
+                    k8s.corev1.EnvVar(name = "GOOS", value = goos),
+                    k8s.corev1.EnvVar(name = "GOARCH", value = goarch)
+                ],
+                workingDir = git_checkout_dir(git_name)
+            ))
 
-    for os_name in os:
-        steps.append(buildkit_container(
-            name="go-build-{}".format(os_name),
-            image=image,
-            command=command + [
-                "-o", "/workspace/output/{}/{}_{}".format(taskName, name, os_name), "./cmd/{}".format(name)
-            ],
-            env=[
-                k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
-                k8s.corev1.EnvVar(name="GOOS", value=os_name),
-            ],
-            workingDir="/workspace/{}".format(git)
-        ))
+    kwargs.setdefault("inputs", []).append(git_name)
+    kwargs.setdefault("outputs", []).append(storage_name)
+    kwargs.setdefault("steps", []).extend(steps)
 
-    task(taskName, inputs=[git] + (inputs or []), outputs=[storageResource(taskName)], steps=steps, **kwargs)
-    return taskName
+    task(task_name, **kwargs)
 
-def ko(task_name, git_name, image_repo, package, tag="$(context.build.name)", ldflags=None, **kwargs):
+    return storage_name
+
+def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldflags=None, **kwargs):
     """
     Build a Docker container for a Go binary using ko.
     """
@@ -95,7 +103,7 @@ def ko(task_name, git_name, image_repo, package, tag="$(context.build.name)", ld
 
     env = [
         k8s.corev1.EnvVar(name = "GO111MODULE", value = "on"),
-        k8s.corev1.EnvVar(name = "KO_DOCKER_REPO", value = "-"),
+        k8s.corev1.EnvVar(name = "KO_DOCKER_REPO", value = "ko.local")
     ]
 
     if ldflags:
@@ -112,7 +120,7 @@ def ko(task_name, git_name, image_repo, package, tag="$(context.build.name)", ld
                 "publish",
                 "--oci-layout-path=$(resources.outputs.{}.path)".format(image_name),
                 "--push=false",
-                package
+                path
             ],
             env = env,
             workingDir = git_checkout_dir(git_name),
