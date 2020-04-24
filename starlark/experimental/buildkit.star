@@ -1,6 +1,7 @@
 # vi:syntax=python
 
-load("/starlark/stable/pipeline", "sanitize", "image_resource", "git_checkout_dir")
+load("/starlark/stable/pipeline", "image_resource", "git_checkout_dir")
+load("/starlark/stable/k8s", "sanitize")
 
 __doc__ = """
 # Buildkit
@@ -10,7 +11,7 @@ Provides methods for interacting with a Buildkit instance.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.5", "buildkit")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.6", "buildkit")
 ```
 
 """
