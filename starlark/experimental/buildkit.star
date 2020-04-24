@@ -1,7 +1,6 @@
 # vi:syntax=python
 
 load("/starlark/stable/pipeline", "image_resource", "git_checkout_dir")
-load("/starlark/stable/k8s", "sanitize")
 
 __doc__ = """
 # Buildkit
@@ -82,7 +81,7 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
     """
     Build a Docker image using Buildkit.
     """
-    image_name = image_resource("image-" + sanitize(image_repo)[-57:], url = image_repo + ":" + tag) 
+    image_name = image_resource("image-" + task_name, url = image_repo + ":" + tag) 
 
     command = [
         "buildctl",
@@ -118,8 +117,8 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
             name = "extract-and-push",
             image = "gcr.io/tekton-releases/dogfooding/skopeo:latest",
             command = ["sh", "-c", """
-                tar -xf /wd/image.tar -C $(resources.outputs.{name}.path)/
-                skopeo copy oci:$(resources.outputs.{name}.path)/ docker://$(resources.outputs.{name}.url)
+tar -xf /wd/image.tar -C $(resources.outputs.{name}.path)/
+skopeo copy oci:$(resources.outputs.{name}.path)/ docker://$(resources.outputs.{name}.url)
             """.format(name = image_name)],
             volumeMounts = [k8s.corev1.VolumeMount(name = "buildkit-wd", mountPath = "/wd")]
         )
