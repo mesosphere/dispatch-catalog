@@ -10,7 +10,7 @@ This module provides methods useful for crafting the basic Dispatch pipeline res
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.6", "git_resource")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.5", "git_resource")
 ```
 
 """
@@ -19,24 +19,27 @@ def push(**kwargs):
     """
     A sugar function for creating a new push condition.
 
-    Example usage: `action(tasks = ["test"], on = push(branches = ["master"]))`
+    Example usage: `action(tasks=["test"], on=push(branches=["master"]))`
     """
+
     return p.Condition(push=p.PushCondition(**kwargs))
 
 def tag(**kwargs):
     """
     A sugar function for creating a new tag condition.
 
-    Example usage: `action(tasks = ["test"], on = tag())`
+    Example usage: `action(tasks=["test"], on=tag())`
     """
+
     return p.Condition(tag=p.TagCondition(**kwargs))
 
 def pull_request(**kwargs):
     """
     A sugar function for creating a new pull request condition.
 
-    Example usage: `action(tasks = ["test"], on = pull_request(chatops=["build"]))`
+    Example usage: `action(tasks=["test"], on=pull_request(chatops=["build"]))`
     """
+
     return p.Condition(pull_request=p.PullRequestCondition(**kwargs))
 
 def pullRequest(**kwargs):
@@ -52,19 +55,21 @@ def git_resource(name, url="$(context.git.url)", revision="$(context.git.commit)
     If url is not set, it defaults to the Git URL triggering this build, i.e., "$(context.git.url)".
     If revision is not set, it defaults to the commit SHA triggering this build, i.e., "$(context.git.commit)".
 
-    Example usage: `git_resource("my-git", url = "https://github.com/mesosphere/dispatch", revision = "dev")`
+    Example usage: `git_resource("my-git", url="https://github.com/mesosphere/dispatch", revision="dev")`
     """
-    resource(name, type = "git", params = {
+
+    resource(name, type="git", params={
         "url": url,
         "revision": revision
-    }, pipeline = pipeline)
+    }, pipeline=pipeline)
     return name
 
 def gitResource(name, url="$(context.git.url)", revision="$(context.git.commit)", pipeline=None):
     """
     DEPRECATED: Use git_resource instead.
     """
-    return git_resource(name, url = url, revision = revision, pipeline = pipeline)
+
+    return git_resource(name, url=url, revision=revision, pipeline=pipeline)
 
 def image_resource(name, url, digest="", pipeline=None):
     """
@@ -72,17 +77,19 @@ def image_resource(name, url, digest="", pipeline=None):
 
     Example usage: `image_resource("my-image", "mesosphere/dispatch:latest")`
     """
-    resource(name, type = "image", params = {
+
+    resource(name, type="image", params={
         "url": url,
         "digest": digest
-    }, pipeline = pipeline)
+    }, pipeline=pipeline)
     return name
 
 def imageResource(name, url, digest, pipeline=None):
     """
     DEPRECATED: Use image_resource instead.
     """
-    return image_resource(name, url, digest = digest, pipeline = pipeline)
+
+    return image_resource(name, url, digest=digest, pipeline=pipeline)
 
 def storage_resource(name, location="s3://artifacts", secret="s3-config", pipeline=None):
     """
@@ -91,28 +98,24 @@ def storage_resource(name, location="s3://artifacts", secret="s3-config", pipeli
     If location is not set, it defaults to Dispatch's default MinIO storage.
     If secret is not set, it defaults to Dispatch's default S3 configuration secret.
 
-    Example usage: `storage_resource("my-storage", location = "s3://my-bucket/path", secret = "my-boto-secret")`
+    Example usage: `storage_resource("my-storage", location="s3://my-bucket/path", secret="my-boto-secret")`
     """
-    resource(name, type = "storage", params = {
+
+    resource(name, type="storage", params={
         "type": "gcs",
         "location": location,
         "dir": "true"
-    }, secrets = {
-        "BOTO_CONFIG": k8s.corev1.SecretKeySelector(key = "boto", localObjectReference = k8s.corev1.LocalObjectReference(name = secret))
-    }, pipeline = pipeline)
+    }, secrets={
+        "BOTO_CONFIG": k8s.corev1.SecretKeySelector(key="boto", localObjectReference=k8s.corev1.LocalObjectReference(name=secret))
+    }, pipeline=pipeline)
     return name
 
 def storageResource(name):
     """
     DEPRECATED: Use storage_resource instead.
     """
-    return storage_resource(name)
 
-def volume(name, **kwargs):
-    """
-    Create a new volume given a volume source.
-    """
-    return k8s.corev1.Volume(name=name, volumeSource=k8s.corev1.VolumeSource(**kwargs))
+    return storage_resource(name)
 
 def resourceVar(name, key):
     """
@@ -120,6 +123,7 @@ def resourceVar(name, key):
 
     Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
     """
+
     return "$(inputs.resources.{}.{})".format(name, key)
 
 def git_revision(name):
@@ -128,6 +132,7 @@ def git_revision(name):
 
     Returns string "$(resources.inputs.<name>.revision)"
     """
+
     return "$(resources.inputs.{}.revision)".format(name)
 
 def git_checkout_dir(name):
@@ -136,6 +141,7 @@ def git_checkout_dir(name):
 
     Returns string "$(resources.inputs.<name>.path)".
     """
+
     return"$(resources.inputs.{}.path)".format(name)
 
 def image_reference(name):
@@ -144,6 +150,7 @@ def image_reference(name):
 
     Returns string "$(resources.inputs.<name>.url)@$(resources.inputs.<name>.digest)".
     """
+
     return "$(resources.inputs.{}.url)@$(resources.inputs.{}.digest)".format(name, name)
 
 def storage_dir(name):
@@ -152,22 +159,35 @@ def storage_dir(name):
 
     Returns string "$(resources.inputs.<name>.path)".
     """
+
     return "$(resources.inputs.{}.path)".format(name)
+
+def task_step_result(task, step):
+    """
+    Shorthand for a task step result variable.
+
+    Returns string "$(inputs.tasks.<task>.<step>)".
+    """
+
+    return "$(inputs.tasks.{}.{})".format(task, step)
 
 def secretVar(name, key):
     """
     DEPRECATED: Use secret_var in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
     """
+
     return secret_var(name, key)
+
+def volume(name, **kwargs):
+    """
+    DEPRECATED: Use volume source helpers in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
+    """
+
+    return k8s.corev1.Volume(name=name, volumeSource=k8s.corev1.VolumeSource(**kwargs))
 
 def clean(name):
     """
     DEPRECATED: Use sanitize in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
     """
-    return sanitize(name)
 
-def step_output_var(task, step):
-    """
-    Shorthand for a task step variable, returns a string "$(inputs.tasks.<task>.<step>)"
-    """
-    return "$(inputs.tasks.{}.{})".format(task, step)
+    return sanitize(name)
