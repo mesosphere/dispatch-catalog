@@ -29,7 +29,7 @@ def kaniko(task_name, git_name, image_repo, tag="$(context.build.name)", context
     outputs = outputs + [image_name]
 
     args = [
-        "--destination=$(resources.inputs.{}.url):{}".format(image_name, tag),
+        "--destination=$(resources.outputs.{}.url):{}".format(image_name, tag),
         "--context={}".format(context),
         "--oci-layout-path=$(resources.outputs.{}.path)".format(image_name),
         "--dockerfile={}".format(dockerfile)
@@ -46,5 +46,7 @@ def kaniko(task_name, git_name, image_repo, tag="$(context.build.name)", context
             workingDir=git_checkout_dir(git_name)
         )
     ]
+
+    task(task_name, inputs=inputs, outputs=outputs, steps=steps, **kwargs)
 
     return image_name
