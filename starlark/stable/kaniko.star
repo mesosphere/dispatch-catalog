@@ -20,14 +20,16 @@ def kaniko(task_name, git_name, image_repo, tag="$(context.build.name)", context
     Build a Docker image using Kaniko.
     """
 
-    image_url = "{}:{}".format(image_repo, tag)
-    image_name = image_resource("image-{}".format(task_name), url=image_url)
+    image_name = image_resource(
+        "image-{}".format(task_name),
+        url="{}:{}".format(image_repo, tag)
+    )
 
     inputs = inputs + [git_name]
     outputs = outputs + [image_name]
 
     args = [
-        "--destination={}".format(image_url),
+        "--destination=$(resources.inputs.{}.url)".format(image_name),
         "--context={}".format(context),
         "--oci-layout-path=$(resources.outputs.{}.path)".format(image_name),
         "--dockerfile={}".format(dockerfile)

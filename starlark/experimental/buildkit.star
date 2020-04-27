@@ -64,9 +64,7 @@ COPY --from=0 {working_dir} {working_dir}
 cat > /tmp/Dockerfile.buildkit <<EOF
 {}
 EOF
-buildctl build \
-    --debug \
-    --addr=tcp://buildkitd.buildkit:1234 \
+buildctl --debug --addr=tcp://buildkitd.buildkit:1234 build \
     --progress=plain \
     --frontend=dockerfile.v0 \
     --local context=/ \
@@ -92,10 +90,7 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
     volumes = volumes + [k8s.corev1.Volume(name = "buildkit-wd")]
 
     command = [
-        "buildctl",
-        "build",
-        "--debug",
-        "--addr=tcp://buildkitd.buildkit:1234",
+        "buildctl", "--debug", "--addr=tcp://buildkitd.buildkit:1234", "build",
         "--progress=plain",
         "--frontend=dockerfile.v0",
         "--local", "context={}".format(context),
@@ -116,15 +111,15 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
             image="moby/buildkit:v0.6.2",
             workingDir=git_checkout_dir(git_name),
             command=command,
-            volumeMounts=[k8s.corev1.VolumeMount(name = "wd", mountPath="/wd")]
+            volumeMounts=[k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd")]
         ),
         k8s.corev1.Container(
             name="extract-and-push",
             image="gcr.io/tekton-releases/dogfooding/skopeo:latest",
             command=["sh", "-c", """
-tar -xf /wd/image.tar -C $(resources.outputs.{name}.path)/
-skopeo copy oci:$(resources.outputs.{name}.path)/ docker://$(resources.outputs.{name}.url)
-            """.format(name=image_name)],
+tar -xf /wd/image.tar -C $(resources.outputs.{image}.path)/
+skopeo copy oci:$(resources.outputs.{image}.path)/ docker://$(resources.outputs.{image}.url)
+            """.format(image=image_name)],
             volumeMounts=[k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd")]
         )
     ]
