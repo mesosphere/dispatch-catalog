@@ -105,7 +105,7 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
 
     image_name = image_resource(
         "image-{}".format(task_name),
-        url="{}:{}".format(image_repo, tag)
+        url=image_repo
     )
 
     inputs = inputs + [git_name]
