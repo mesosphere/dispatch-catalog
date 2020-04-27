@@ -22,14 +22,14 @@ def kaniko(task_name, git_name, image_repo, tag="$(context.build.name)", context
 
     image_name = image_resource(
         "image-{}".format(task_name),
-        url="{}:{}".format(image_repo, tag)
+        url=image_repo
     )
 
     inputs = inputs + [git_name]
     outputs = outputs + [image_name]
 
     args = [
-        "--destination=$(resources.inputs.{}.url)".format(image_name),
+        "--destination=$(resources.inputs.{}.url):{}".format(image_name, tag),
         "--context={}".format(context),
         "--oci-layout-path=$(resources.outputs.{}.path)".format(image_name),
         "--dockerfile={}".format(dockerfile)

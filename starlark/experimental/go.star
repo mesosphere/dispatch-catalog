@@ -105,7 +105,7 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
 
     image_name = image_resource(
         "image-{}".format(task_name),
-        url="{}:{}".format(image_repo, tag)
+        url=image_repo
     )
 
     inputs = inputs + [git_name]
@@ -125,10 +125,11 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
             image="gcr.io/tekton-releases/dogfooding/ko:latest",
             command=["sh", "-c", """
 ko publish --oci-layout-path=$(resources.outputs.{image}.path) --push=false {path}
-skopeo copy oci:$(resources.outputs.{image}.path)/ docker://$(resources.outputs.{image}.url)
+skopeo copy oci:$(resources.outputs.{image}.path)/ docker://$(resources.outputs.{image}.url):{tag}
             """.format(
                 image=image_name,
-                path=path
+                path=path,
+                tag=tag
             )],
             env=env,
             workingDir=git_checkout_dir(git_name),
