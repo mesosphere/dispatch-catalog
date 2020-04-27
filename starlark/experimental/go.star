@@ -34,7 +34,7 @@ def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[]
         buildkit_container(
             name="go-test",
             image=image,
-            command=["sh", "-c", """
+            command=["sh", "-c", """\
 go test -v -coverprofile $(resources.outputs.{storage}.path)/coverage.out {paths}
 go tool cover -func $(resources.outputs.{storage}.path)/coverage.out | tee $(resources.outputs.{storage}.path)/coverage.txt
 diff -uN --label old/coverage.txt --label new/coverage.txt coverage.txt $(resources.outputs.{storage}.path)/coverage.txt
@@ -74,7 +74,7 @@ def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, 
                 buildkit_container(
                     name="go-build-{}-{}".format(goos, goarch),
                     image=image,
-                    command=["sh", "-c", """
+                    command=["sh", "-c", """\
 mkdir -p $(resources.outputs.{storage}.path)/{os}_{arch}/
 go build -o $(resources.outputs.{storage}.path)/{os}_{arch}/ {build_args} {paths}
                     """.format(
@@ -113,7 +113,7 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
 
     env = [
         k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
-        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value="ko.local")
+        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value="-") # This value is arbitrary to pass ko's validation.
     ]
 
     if ldflags:
@@ -121,19 +121,26 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
 
     steps = steps + [
         buildkit_container(
-            name="build-and-push",
+            name="build",
             image="gcr.io/tekton-releases/dogfooding/ko:latest",
-            command=["sh", "-c", """
-ko publish --oci-layout-path=$(resources.outputs.{image}.path) --push=false {path}
-skopeo copy oci:$(resources.outputs.{image}.path)/ docker://$(resources.outputs.{image}.url):{tag}
-            """.format(
-                image=image_name,
-                path=path,
-                tag=tag
-            )],
+            command=[
+                "ko", "publish",
+                "--oci-layout-path=$(resources.outputs.{}.path)".format(image_name),
+                "--push=false",
+                path
+            ],
             env=env,
             workingDir=git_checkout_dir(git_name),
             output_paths=["$(resources.outputs.{}.path)".format(image_name)]
+        ),
+        k8s.corev1.Container(
+            name="push",
+            image="gcr.io/tekton-releases/dogfooding/skopeo:latest",
+            command=[
+                "skopeo", "copy",
+                "oci:$(resources.outputs.{}.path)/".format(image_name),
+                "docker://$(resources.outputs.{}.url):{}".format(image_name, tag)
+            ],
         )
     ]
 

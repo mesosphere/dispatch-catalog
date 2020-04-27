@@ -28,10 +28,10 @@ def buildkit_container(name, image, workingDir, command, output_paths=[], **kwar
     add_outputs = ""
     copy_outputs = ""
     for output in output_paths:
-        add_outputs += "ADD {output} {output}".format(output = output)
-        copy_outputs += "COPY --from=0 {output} {output}".format(output = output)
+        add_outputs += "ADD {output} {output}\n".format(output=output)
+        copy_outputs += "COPY --from=0 {output} {output}\n".format(output=output)
 
-    dockerfile = """
+    dockerfile = """\
 # syntax = docker/dockerfile:experimental
 FROM {image}
 WORKDIR {working_dir}
@@ -60,7 +60,7 @@ COPY --from=0 {working_dir} {working_dir}
         name=name,
         image="moby/buildkit:v0.6.2",
         workingDir=workingDir,
-        command=["sh", "-c", """
+        command=["sh", "-c", """\
 cat > /tmp/Dockerfile.buildkit <<EOF
 {}
 EOF
@@ -116,7 +116,7 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
         k8s.corev1.Container(
             name="extract-and-push",
             image="gcr.io/tekton-releases/dogfooding/skopeo:latest",
-            command=["sh", "-c", """
+            command=["sh", "-c", """\
 tar -xf /wd/image.tar -C $(resources.outputs.{image}.path)/
 skopeo copy oci:$(resources.outputs.{image}.path)/ docker://$(resources.outputs.{image}.url):{tag}
             """.format(
