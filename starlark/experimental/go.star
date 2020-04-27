@@ -35,9 +35,10 @@ def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[]
             name="go-test",
             image=image,
             command=["sh", "-c", """\
+set -xe
 go test -v -coverprofile $(resources.outputs.{storage}.path)/coverage.out {paths}
 go tool cover -func $(resources.outputs.{storage}.path)/coverage.out | tee $(resources.outputs.{storage}.path)/coverage.txt
-diff -uN --label old/coverage.txt --label new/coverage.txt coverage.txt $(resources.outputs.{storage}.path)/coverage.txt
+diff -uN --label old/coverage.txt --label new/coverage.txt coverage.txt $(resources.outputs.{storage}.path)/coverage.txt || true
             """.format(storage=storage_name, paths=" ".join(paths))],
             env=[k8s.corev1.EnvVar(name="GO111MODULE", value="on")],
             workingDir=git_checkout_dir(git_name),
