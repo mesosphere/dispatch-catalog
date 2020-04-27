@@ -11,7 +11,7 @@ Provides methods for building and testing Go modules.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.5", "ko")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.5", "go")
 ```
 
 """
@@ -39,10 +39,9 @@ go test -v -coverprofile $(resources.outputs.{storage}.path)/coverage.out {paths
 go tool cover -func $(resources.outputs.{storage}.path)/coverage.out | tee $(resources.outputs.{storage}.path)/coverage.txt
 diff -uN --label old/coverage.txt --label new/coverage.txt coverage.txt $(resources.outputs.{storage}.path)/coverage.txt
             """.format(storage=storage_name, paths=" ".join(paths))],
-            env=[
-                k8s.corev1.EnvVar(name="GO111MODULE", value="on")
-            ],
-            workingDir=git_checkout_dir(git_name)
+            env=[k8s.corev1.EnvVar(name="GO111MODULE", value="on")],
+            workingDir=git_checkout_dir(git_name),
+            output_paths=["$(resources.outputs.{}.path)".format(storage_name)]
         )
     ]
 
@@ -90,7 +89,8 @@ go build -o $(resources.outputs.{storage}.path)/{os}_{arch}/ {build_args} {paths
                         k8s.corev1.EnvVar(name="GOOS", value=goos),
                         k8s.corev1.EnvVar(name="GOARCH", value=goarch)
                     ],
-                    workingDir=git_checkout_dir(git_name)
+                    workingDir=git_checkout_dir(git_name),
+                    output_paths=["$(resources.outputs.{}.path)".format(storage_name)]
                 )
             ]
 
@@ -121,28 +121,18 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
 
     steps = steps + [
         buildkit_container(
-            name="build",
+            name="build-and-push",
             image="gcr.io/tekton-releases/dogfooding/ko:latest",
-            command=[
-                "ko",
-                "publish",
-                "--oci-layout-path=$(resources.outputs.{}.path)".format(image_name),
-                "--push=false",
-                path
-            ],
+            command=["sh", "-c", """
+ko publish --oci-layout-path=$(resources.outputs.{image}.path) --push=false {path}
+skopeo copy oci:$(resources.outputs.{image}.path)/ docker://$(resources.outputs.{image}.url)
+            """.format(
+                image=image_name,
+                path=path
+            )],
             env=env,
             workingDir=git_checkout_dir(git_name),
             output_paths=["$(resources.outputs.{}.path)".format(image_name)]
-        ),
-        k8s.corev1.Container(
-            name="push",
-            image="gcr.io/tekton-releases/dogfooding/skopeo:latest",
-            command=[
-                "skopeo",
-                "copy",
-                "oci:$(resources.outputs.{}.path)/".format(image_name),
-                "docker://$(resources.outputs.{}.url)".format(image_name)
-            ]
         )
     ]
 
