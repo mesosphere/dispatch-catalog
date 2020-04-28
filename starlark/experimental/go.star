@@ -1,7 +1,7 @@
 # vi:syntax=python
 
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@master", "imageResource", "storageResource", "resourceVar")
-load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@master", "buildkitContainer")
+load("/starlark/stable/pipeline", "git_checkout_dir", "image_resource", "storage_resource")
+load("/starlark/experimental/buildkit", "buildkit_container")
 
 __doc__ = """
 # Go
@@ -11,120 +11,142 @@ Provides methods for building and testing Go modules.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.4", "ko")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.5", "go")
 ```
 
 """
 
-def go_test(git, name, paths=None, image="golang:1.13.0-buster", inputs=None, **kwargs):
+def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[], outputs=[], steps=[], **kwargs):
     """
     Run Go tests and generate a coverage report.
     """
 
-    if not paths:
-        paths = []
+    # TODO(chhsiao): Because the location is deterministic, artifacts will be overwritten by
+    # different runs. We should introduce a mechanism to avoid this.
+    storage_name = storage_resource(
+        "storage-{}".format(task_name),
+        location="s3://artifacts/{}/".format(task_name)
+    )
 
-    taskName = "{}-test".format(name)
-
-    task(taskName, inputs=[git] + (inputs or []), outputs=[ storageResource(taskName) ], steps=[
-        buildkitContainer(
-            name="go-test-{}".format(name),
+    inputs = inputs + [git_name]
+    outputs = outputs + [storage_name]
+    steps = steps + [
+        buildkit_container(
+            name="go-test",
             image=image,
-            command=[ "go", "test", "-v", "-coverprofile", "/workspace/output/{}/coverage.out".format(taskName) ] + paths,
-            env=[ k8s.corev1.EnvVar(name="GO111MODULE", value="on") ],
-            workingDir="/workspace/{}".format(git)
-        ),
-        k8s.corev1.Container(
-            name="coverage-report-{}".format(name),
-            image=image,
-            workingDir="/workspace/{}/".format(git),
-            command=[
-                "sh", "-c",
-                """
-                go tool cover -func /workspace/output/{}/coverage.out | tee /workspace/output/{}/coverage.txt
-                cp /workspace/output/{}/coverage.txt coverage.txt
-                git add coverage.txt
-                git diff --cached coverage.txt
-                """.format(taskName, taskName, taskName)
-            ],
-            env=[ k8s.corev1.EnvVar(name="GO111MODULE", value="on") ],
-        )], **kwargs)
+            command=["sh", "-c", """\
+set -xe
+go test -v -coverprofile $(resources.outputs.{storage}.path)/coverage.out {paths}
+go tool cover -func $(resources.outputs.{storage}.path)/coverage.out | tee $(resources.outputs.{storage}.path)/coverage.txt
+            """.format(
+                storage=storage_name,
+                paths=" ".join(paths)
+            )],
+            env=[k8s.corev1.EnvVar(name="GO111MODULE", value="on")],
+            workingDir=git_checkout_dir(git_name),
+            output_paths=["$(resources.outputs.{}.path)".format(storage_name)]
+        )
+    ]
 
-    return taskName
+    task(task_name, inputs=inputs, outputs=outputs, steps=steps, **kwargs)
 
-def go(git, name, ldflags=None, os=None, image="golang:1.13.0-buster", inputs=None, **kwargs):
+    return storage_name
+
+def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, os=["linux"], arch=["amd64"], inputs=[], outputs=[], steps=[], **kwargs):
     """
-    Build a Go binary.
+    Build Go binaries.
     """
 
-    if not os:
-        os = ['linux']
+    # TODO(chhsiao): Because the location is deterministic, artifacts will be overwritten by
+    # different runs. We should introduce a mechanism to avoid this.
+    storage_name = storage_resource(
+        "storage-{}".format(task_name),
+        location="s3://artifacts/{}/".format(task_name)
+    )
 
-    taskName = "{}-build".format(name)
+    inputs = inputs + [git_name]
+    outputs = outputs + [storage_name]
 
-
-    command = [ "go", "build" ]
-
+    build_args = []
     if ldflags:
-        command += ["-ldflags", ldflags]
+        build_args += ["-ldflags", ldflags]
 
-    steps = []
+    for goos in os:
+        for goarch in arch:
+            steps = steps + [
+                buildkit_container(
+                    name="go-build-{}-{}".format(goos, goarch),
+                    image=image,
+                    command=["sh", "-c", """\
+mkdir -p $(resources.outputs.{storage}.path)/{os}_{arch}/
+go build -o $(resources.outputs.{storage}.path)/{os}_{arch}/ {build_args} {paths}
+                    """.format(
+                        storage=storage_name,
+                        os=goos,
+                        arch=goarch,
+                        build_args=" ".join(build_args),
+                        paths=" ".join(paths)
+                    )],
+                    env=[
+                        k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
+                        k8s.corev1.EnvVar(name="GOOS", value=goos),
+                        k8s.corev1.EnvVar(name="GOARCH", value=goarch)
+                    ],
+                    workingDir=git_checkout_dir(git_name),
+                    output_paths=["$(resources.outputs.{}.path)".format(storage_name)]
+                )
+            ]
 
-    for os_name in os:
-        steps.append(buildkitContainer(
-            name="go-build-{}".format(os_name),
-            image=image,
-            command=command + [
-                "-o", "/workspace/output/{}/{}_{}".format(taskName, name, os_name), "./cmd/{}".format(name)
-            ],
-            env=[
-                k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
-                k8s.corev1.EnvVar(name="GOOS", value=os_name),
-            ],
-            workingDir="/workspace/{}".format(git)
-        ))
+    task(task_name, inputs=inputs, outputs=outputs, steps=steps, **kwargs)
 
-    task(taskName, inputs=[git] + (inputs or []), outputs=[storageResource(taskName)], steps=steps, **kwargs)
-    return taskName
+    return storage_name
 
-def ko(git, image_name, name, *args, ldflags=None, ko_image="mesosphere/ko:1.1.0-beta1", inputs=None, tag="$(context.build.name)", **kwargs):
+def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldflags=None, inputs=[], outputs=[], steps=[], **kwargs):
     """
     Build a Docker container for a Go binary using ko.
     """
-    taskName = "{}-ko".format(name)
 
-    imageWithTag = "{}:{}".format(image_name, tag)
+    image_name = image_resource(
+        "image-{}".format(task_name),
+        url=image_repo
+    )
 
-    imageResource(taskName,
-        url=image_name,
-        digest="$(inputs.resources.{}.digest)".format(taskName))
+    inputs = inputs + [git_name]
+    outputs = outputs + [image_name]
 
     env = [
         k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
-        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value="-"),
+        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value="-") # This value is arbitrary to pass ko's validation.
     ]
 
     if ldflags:
         env.append(k8s.corev1.EnvVar(name="GOFLAGS", value="-ldflags={}".format(ldflags)))
 
-    task(taskName, inputs=[git]+(inputs or []), outputs=[taskName], steps=[
-        buildkitContainer(
-            name="ko-build",
-            image=ko_image,
+    steps = steps + [
+        buildkit_container(
+            name="build",
+            image="gcr.io/tekton-releases/dogfooding/ko:latest",
             command=[
-                "ko", "publish", "--oci-layout-path=/workspace/output/{}".format(taskName), "--push=false", "./cmd/{}".format(name)
+                "ko", "publish",
+                "--oci-layout-path=$(resources.outputs.{}.path)".format(image_name),
+                "--push=false",
+                path
             ],
             env=env,
-            workingDir="/workspace/{}".format(git)
+            workingDir=git_checkout_dir(git_name),
+            output_paths=["$(resources.outputs.{}.path)".format(image_name)]
         ),
         k8s.corev1.Container(
-            name = "push",
-            image = "mesosphere/skopeo:1.1.0-beta1",
-            command = [
-                "skopeo", "copy", "oci:/workspace/output/{}/".format(taskName), "docker://{}".format(imageWithTag)
-            ]
-        ),
- 
-    ], **kwargs)
+            name="push",
+            image="gcr.io/tekton-releases/dogfooding/skopeo:latest",
+            command=[
+                "skopeo", "copy",
+                "oci:$(resources.outputs.{}.path)/".format(image_name),
+                "docker://$(resources.outputs.{}.url):{}".format(image_name, tag)
+            ],
+        )
+    ]
 
-    return taskName
+    task(task_name, inputs=inputs, outputs=outputs, steps=steps, **kwargs)
+
+    return image_name

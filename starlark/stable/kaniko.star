@@ -1,6 +1,6 @@
 # vi:syntax=python
 
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@master", "clean", "imageResource")
+load("/starlark/stable/pipeline", "image_resource", "git_checkout_dir")
 
 __doc__ = """
 # Kaniko
@@ -10,36 +10,43 @@ Provides methods for building Docker containers using Kaniko.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/kaniko@0.0.4", "kaniko")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/kaniko@0.0.5", "kaniko")
 ```
 
 """
 
-def kaniko(git, image, context="", dockerfile="Dockerfile", **kwargs):
+def kaniko(task_name, git_name, image_repo, tag="$(context.build.name)", context=".", dockerfile="Dockerfile", build_args={}, inputs=[], outputs=[], steps=[], **kwargs):
     """
     Build a Docker image using Kaniko.
     """
-    imageWithTag = "{}:$(context.build.name)".format(image)
-    name = clean(image)
-    additional_inputs = kwargs.get("inputs",[])
-    imageResource(name,
-        url=imageWithTag,
-        digest="$(inputs.resources.{}.digest)".format(name))
 
-    build_args = []
+    image_name = image_resource(
+        "image-{}".format(task_name),
+        url=image_repo
+    )
 
-    for k, v in kwargs.get("buildArgs", {}).items():
-        build_args.append("--build-arg={}={}".format(k, v))
+    inputs = inputs + [git_name]
+    outputs = outputs + [image_name]
 
-    task(name, inputs = [git]+additional_inputs, outputs = [name], steps=[
-        v1.Container(
-            name = "docker-build",
-            image = "chhsiao/kaniko-executor",
-            args= build_args+[
-                "--destination={}".format(imageWithTag),
-                "--context=/workspace/{}/{}".format(git, context),
-                "--oci-layout-path=/workspace/output/{}".format(name),
-                "--dockerfile=/workspace/{}/{}".format(git, dockerfile)
-            ])])
+    args = [
+        "--destination=$(resources.outputs.{}.url):{}".format(image_name, tag),
+        "--context={}".format(context),
+        "--oci-layout-path=$(resources.outputs.{}.path)".format(image_name),
+        "--dockerfile={}".format(dockerfile)
+    ]
 
-    return name
+    for k, v in build_args.items():
+        args.append("--build-arg={}={}".format(k, v))
+
+    steps = steps + [
+        k8s.corev1.Container(
+            name="build",
+            image="gcr.io/kaniko-project/executor:latest",
+            args=args,
+            workingDir=git_checkout_dir(git_name)
+        )
+    ]
+
+    task(task_name, inputs=inputs, outputs=outputs, steps=steps, **kwargs)
+
+    return image_name
