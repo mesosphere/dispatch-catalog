@@ -1,7 +1,7 @@
 # vi:syntax=python
 
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@master", "imageResource", "storageResource", "resourceVar")
-load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@master", "buildkitContainer")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.4", "imageResource", "storageResource", "resourceVar")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.4", "buildkitContainer")
 
 __doc__ = """
 # Go
