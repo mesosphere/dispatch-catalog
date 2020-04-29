@@ -103,7 +103,8 @@ def storage_resource(name, location="s3://artifacts", secret="s3-config", pipeli
 
     resource(name, type="storage", params={
         "type": "gcs",
-        "location": location,
+        "location": "{}/{}".format(location, name),
+        "dir": "y"
     }, secrets={
         "BOTO_CONFIG": k8s.corev1.SecretKeySelector(key="boto", localObjectReference=k8s.corev1.LocalObjectReference(name=secret))
     }, pipeline=pipeline)
