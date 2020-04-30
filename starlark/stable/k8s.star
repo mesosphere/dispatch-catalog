@@ -17,7 +17,7 @@ def secret_var(name, key):
     """
     Convenience function for adding an environment variable from a Kubernetes secret.
 
-    Example usage: `k8s.corev1.EnvVar(name="GITHUB_TOKEN", valueFrom=secretVar("scmtoken", "password"))`
+    Example usage: `k8s.corev1.EnvVar(name="GITHUB_TOKEN", valueFrom=secret_var("scmtoken", "password"))`
     """
 
     return k8s.corev1.EnvVarSource(
