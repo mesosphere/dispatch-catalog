@@ -91,7 +91,7 @@ def imageResource(name, url, digest, pipeline=None):
 
     return image_resource(name, url, digest=digest, pipeline=pipeline)
 
-def storage_resource(name, location="s3://artifacts", secret="s3-config", pipeline=None):
+def storage_resource(name, location="", secret="s3-config", pipeline=None):
     """
     Create a new S3-compatible resource.
 
@@ -103,7 +103,7 @@ def storage_resource(name, location="s3://artifacts", secret="s3-config", pipeli
 
     resource(name, type="storage", params={
         "type": "gcs",
-        "location": "{}/{}".format(location, name),
+        "location": location,
         "dir": "y"
     }, secrets={
         "BOTO_CONFIG": k8s.corev1.SecretKeySelector(key="boto", localObjectReference=k8s.corev1.LocalObjectReference(name=secret))
