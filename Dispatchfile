@@ -1,8 +1,8 @@
 #!starlark
 # vi:syntax=python
 
-load("github.com/jbarrick-mesosphere/catalog/starlark/stable/docker@master", "dindTask")
-load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@master", "gitResource", "secretVar", "pullRequest", "push")
+load("github.com/jbarrick-mesosphere/catalog/starlark/stable/docker@0.0.3", "dindTask")
+load("github.com/jbarrick-mesosphere/catalog/starlark/stable/pipeline@0.0.3", "gitResource", "secretVar", "pullRequest", "push")
 
 git = gitResource("git")
 

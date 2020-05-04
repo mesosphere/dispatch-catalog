@@ -1,6 +1,6 @@
 # vi:syntax=python
 
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@master", "clean", "imageResource")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.3", "clean", "imageResource")
 
 __doc__ = """
 # Kaniko
