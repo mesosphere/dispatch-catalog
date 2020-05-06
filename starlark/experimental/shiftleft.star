@@ -44,5 +44,6 @@ def sast_scan(task_name, git_name, image="shiftleft/sast-scan:latest", src=None,
                 "--src={}".format(src),
                 "--out_dir={}".format("$(resources.outputs.{}.path)".format(output_name)),
             ] + extra_command_flags,
-        )], **kwargs)
+            **kwargs
+        )])
     return output_name
