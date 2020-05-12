@@ -29,7 +29,8 @@ def sast_scan(task_name, git_name, image="shiftleft/sast-scan:latest", src=None,
     if not src:
         src = git_checkout_dir(git_name)
     output_name = storage_resource("storage-{}".format(task_name))
-
+    if not extra_scan_options:
+        extra_scan_options = []
     task(task_name, inputs=[git_name], outputs=[output_name], steps=[
         k8s.corev1.Container(
             name="sast-scan-shiftleft-{}".format(git_name),
