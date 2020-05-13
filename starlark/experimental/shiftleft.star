@@ -28,6 +28,8 @@ def sast_scan(task_name, git_name, image="shiftleft/sast-scan:latest", src=None,
     """
     if not src:
         src = git_checkout_dir(git_name)
+    if not extra_scan_options:
+        extra_scan_options = []
     output_name = storage_resource("storage-{}".format(task_name))
 
     task(task_name, inputs=[git_name], outputs=[output_name], steps=[
