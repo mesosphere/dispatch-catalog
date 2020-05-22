@@ -15,7 +15,19 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.
 
 """
 
-def buildkit_container(name, image, workingDir, command, output_paths=[], **kwargs):
+buildx_image = "jbarrickmesosphere/buildx@sha256:6c63494ccd7a783b4a0d197f9dd91845543c5e04c1c73d94fef9dfdbbf962b3c"
+
+def buildkit_install(replicas=3, cluster_name="buildkit"):
+    return k8s.corev1.Container(
+        name = "install-buildkit",
+        image = buildx_image,
+        command = [
+            "docker", "buildx", "create", "--driver=kubernetes",
+            "--driver-opt=replicas={}".format(replicas), "--use", "--name={}".format(cluster_name)
+        ]
+    )
+
+def buildkit_container(name, image, workingDir, command, output_paths=[], replicas=3, cluster_name="buildkit", **kwargs):
     """
     buildkit_container returns a Kubernetes corev1.Container that runs inside of buildkit.
     The container can take advantage of buildkit's cache mount feature as the cache is mounted into /cache.
@@ -58,24 +70,20 @@ COPY --from=0 {working_dir} {working_dir}
 
     return k8s.corev1.Container(
         name=name,
-        image="moby/buildkit:v0.6.2",
+        image=buildx_image,
         workingDir=workingDir,
         command=["sh", "-c", """\
 cat > /tmp/Dockerfile.buildkit <<EOF
-{}
+{dockerfile}
 EOF
-buildctl --debug --addr=tcp://buildkitd.buildkit:1234 build \
-    --progress=plain \
-    --frontend=dockerfile.v0 \
-    --local context=/ \
-    --local dockerfile=/tmp \
-    --output type=local,dest=/ \
-    --opt filename=Dockerfile.buildkit
-        """.format(dockerfile)],
+
+docker buildx create --driver=kubernetes --driver-opt=replicas={replicas} --use --name={cluster_name}
+docker buildx build -f Dockerfile.buildkit / -o type=local,dest=/
+        """.format(dockerfile=dockerfile, replicas=replicas, cluster_name=cluster_name)],
         **kwargs
     )
 
-def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", context=".", dockerfile="Dockerfile", build_args={}, build_env={}, inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
+def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", context=".", dockerfile="Dockerfile", replicas=3, cluster_name="buildkit", build_args={}, inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
     """
     Build a Docker image using Buildkit.
     """
@@ -89,41 +97,35 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
     outputs = outputs + [image_name]
     volumes = volumes + [k8s.corev1.Volume(name = "buildkit-wd")]
 
-    command = [
-        "buildctl", "--debug", "--addr=tcp://buildkitd.buildkit:1234", "build",
-        "--progress=plain",
-        "--frontend=dockerfile.v0",
-        "--local", "context={}".format(context),
-        "--local", "dockerfile=.",
-        "--output", "type=docker,dest=/wd/image.tar",
-        "--opt", "filename={}".format(dockerfile)
-    ]
-
     for k, v in build_args.items():
       command += ["--opt", "build-arg:{}={}".format(k, v)]
 
-    for k, v in build_env.items():
-      command += ["--opt", "build-env:{}={}".format(k, v)]
-
     steps = steps + [
         k8s.corev1.Container(
-            name="build",
-            image="moby/buildkit:v0.6.2",
-            workingDir=git_checkout_dir(git_name),
-            command=command,
-            volumeMounts=[k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd")]
+            name = "install-buildkit",
+            image = buildx_image,
+            command = [
+                "docker", "buildx", "create", "--driver=kubernetes",
+                "--driver-opt=replicas={}".format(replicas), "--use", "--name={}".format(cluster_name)
+            ]
         ),
         k8s.corev1.Container(
-            name="extract-and-push",
-            image="gcr.io/tekton-releases/dogfooding/skopeo:latest",
-            command=["sh", "-c", """\
-tar -xf /wd/image.tar -C $(resources.outputs.{image}.path)/
-skopeo copy oci:$(resources.outputs.{image}.path)/ docker://$(resources.outputs.{image}.url):{tag}
-            """.format(
-                image=image_name,
-                tag=tag
-            )],
-            volumeMounts=[k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd")]
+            name = "build-image",
+            image = buildx_image,
+            workingDir = git_checkout_dir(git_name),
+            command = [
+                "docker", "buildx", "build", "-f", dockerfile, context, "-o", "type=docker,dest=/wd/image.tar"
+            ],
+            volumeMounts = [k8s.corev1.VolumeMount(name = "buildkit-wd", mountPath = "/wd")]
+        ),
+        k8s.corev1.Container(
+            name = "extract-and-push",
+            image = "gcr.io/tekton-releases/dogfooding/skopeo:latest",
+            command = ["sh", "-c", """
+tar -xf /wd/image.tar -C $(resources.outputs.{name}.path)/
+skopeo copy oci:$(resources.outputs.{name}.path)/ docker://$(resources.outputs.{name}.url)
+            """.format(name = image_name)],
+            volumeMounts = [k8s.corev1.VolumeMount(name = "buildkit-wd", mountPath = "/wd")]
         )
     ]
 
