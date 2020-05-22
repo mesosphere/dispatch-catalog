@@ -17,16 +17,6 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.
 
 buildx_image = "jbarrickmesosphere/buildx@sha256:6c63494ccd7a783b4a0d197f9dd91845543c5e04c1c73d94fef9dfdbbf962b3c"
 
-def buildkit_install(replicas=3, cluster_name="buildkit"):
-    return k8s.corev1.Container(
-        name = "install-buildkit",
-        image = buildx_image,
-        command = [
-            "docker", "buildx", "create", "--driver=kubernetes",
-            "--driver-opt=replicas={}".format(replicas), "--use", "--name={}".format(cluster_name)
-        ]
-    )
-
 def buildkit_container(name, image, workingDir, command, output_paths=[], replicas=3, cluster_name="buildkit", **kwargs):
     """
     buildkit_container returns a Kubernetes corev1.Container that runs inside of buildkit.
@@ -97,8 +87,12 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
     outputs = outputs + [image_name]
     volumes = volumes + [k8s.corev1.Volume(name = "buildkit-wd")]
 
+    command = [
+        "docker", "buildx", "build", "-f", dockerfile, context, "-o", "type=docker,dest=/wd/image.tar"
+    ]
+
     for k, v in build_args.items():
-      command += ["--opt", "build-arg:{}={}".format(k, v)]
+      command += ["--build-arg", "{}={}".format(k, v)]
 
     steps = steps + [
         k8s.corev1.Container(
@@ -113,9 +107,7 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
             name = "build-image",
             image = buildx_image,
             workingDir = git_checkout_dir(git_name),
-            command = [
-                "docker", "buildx", "build", "-f", dockerfile, context, "-o", "type=docker,dest=/wd/image.tar"
-            ],
+            command = command,
             volumeMounts = [k8s.corev1.VolumeMount(name = "buildkit-wd", mountPath = "/wd")]
         ),
         k8s.corev1.Container(
