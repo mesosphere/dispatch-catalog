@@ -68,7 +68,7 @@ cat > /tmp/Dockerfile.buildkit <<EOF
 EOF
 
 docker buildx create --driver=kubernetes --driver-opt=replicas={replicas} --use --name={cluster_name}
-docker buildx build -f Dockerfile.buildkit / -o type=local,dest=/
+docker buildx build -f /tmp/Dockerfile.buildkit / -o type=local,dest=/
         """.format(dockerfile=dockerfile, replicas=replicas, cluster_name=cluster_name)],
         **kwargs
     )
