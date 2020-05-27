@@ -115,8 +115,8 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
             image = "gcr.io/tekton-releases/dogfooding/skopeo:latest",
             command = ["sh", "-c", """
 tar -xf /wd/image.tar -C $(resources.outputs.{name}.path)/
-skopeo copy oci:$(resources.outputs.{name}.path)/ docker://$(resources.outputs.{name}.url)
-            """.format(name = image_name)],
+skopeo copy oci:$(resources.outputs.{name}.path)/ docker://$(resources.outputs.{name}.url):{tag}
+            """.format(name = image_name, tag = tag)],
             volumeMounts = [k8s.corev1.VolumeMount(name = "buildkit-wd", mountPath = "/wd")]
         )
     ]
