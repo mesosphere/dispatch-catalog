@@ -1,6 +1,7 @@
 # vi:syntax=python
 
 load("/starlark/stable/pipeline", "image_resource", "git_checkout_dir")
+load("/starlark/stable/k8s", "secret_volume")
 
 __doc__ = """
 # Buildkit
@@ -70,7 +71,10 @@ buildctl --debug --addr=tcp://buildkitd.buildkit:1234 build \
     --local context=/ \
     --local dockerfile=/tmp \
     --output type=local,dest=/ \
-    --opt filename=Dockerfile.buildkit
+    --opt filename=Dockerfile.buildkit \
+    --tlscacert /certs/ca.crt \
+    --tlscert /certs/tls.crt \
+    --tlskey /certs/tls.key
         """.format(dockerfile)],
         **kwargs
     )
@@ -87,7 +91,10 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
 
     inputs = inputs + [git_name]
     outputs = outputs + [image_name]
-    volumes = volumes + [k8s.corev1.Volume(name = "buildkit-wd")]
+    volumes = volumes + [
+        k8s.corev1.Volume(name = "buildkit-wd"),
+        secret_volume("buildkit-client-cert")
+    ]
 
     command = [
         "buildctl", "--debug", "--addr=tcp://buildkitd.buildkit:1234", "build",
@@ -96,7 +103,10 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
         "--local", "context={}".format(context),
         "--local", "dockerfile=.",
         "--output", "type=docker,dest=/wd/image.tar",
-        "--opt", "filename={}".format(dockerfile)
+        "--opt", "filename={}".format(dockerfile),
+        "--tlscacert", "/certs/ca.crt",
+        "--tlscert", "/certs/tls.crt",
+        "--tlskey", "/certs/tls.key"
     ]
 
     for k, v in build_args.items():
@@ -111,7 +121,10 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
             image="moby/buildkit:v0.6.2",
             workingDir=git_checkout_dir(git_name),
             command=command,
-            volumeMounts=[k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd")]
+            volumeMounts=[
+                k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd"),
+                k8s.corev1.VolumeMount(name="cert", mountPath="/certs/")
+            ]
         ),
         k8s.corev1.Container(
             name="extract-and-push",
