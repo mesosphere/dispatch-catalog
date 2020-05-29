@@ -97,16 +97,15 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
     ]
 
     command = [
-        "buildctl", "--debug", "--addr=tcp://buildkitd.buildkit:1234", "build",
-        "--progress=plain",
-        "--frontend=dockerfile.v0",
+        "buildctl", "--debug", "--addr=tcp://buildkitd.buildkit:1234",
+        "--tlscacert", "/certs/ca.crt",
+        "--tlscert", "/certs/tls.crt",
+        "--tlskey", "/certs/tls.key",
+        "build", "--progress=plain", "--frontend=dockerfile.v0",
         "--local", "context={}".format(context),
         "--local", "dockerfile=.",
         "--output", "type=docker,dest=/wd/image.tar",
-        "--opt", "filename={}".format(dockerfile),
-        "--tlscacert", "/certs/ca.crt",
-        "--tlscert", "/certs/tls.crt",
-        "--tlskey", "/certs/tls.key"
+        "--opt", "filename={}".format(dockerfile)
     ]
 
     for k, v in build_args.items():
