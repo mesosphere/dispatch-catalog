@@ -93,7 +93,7 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
     outputs = outputs + [image_name]
     volumes = volumes + [
         k8s.corev1.Volume(name = "buildkit-wd"),
-        secret_volume("buildkit-client-cert")
+        k8s.corev1.Volume(name = "cert", volumeSource = secret_volume("buildkit-client-cert"))
     ]
 
     command = [
