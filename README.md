@@ -9,3 +9,8 @@
 As the official [Dispatch](https://docs.d2iq.com/ksphere/dispatch/latest/) catalog, this currently hosts our Starlark standard libraries however, this will grow to include other resources and languages.
 
 Check out the [Starlark standard library documentation](./docs/starlark/) for more information.
+
+## Third-Party Dispatch Functions
+
+Dispatch pipelines can be further extended by D2iQ partners or third-parties such as the following:
+* [Shiftleft Scan](https://slscan.io/en/latest/) ([Github Repo](https://github.com/shiftleftsecurity/sast-scan/))
