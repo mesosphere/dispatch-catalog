@@ -65,7 +65,7 @@ COPY --from=0 {working_dir} {working_dir}
 cat > /tmp/Dockerfile.buildkit <<EOF
 {}
 EOF
-buildctl --debug --addr=tcp://buildkitd.buildkit:1234 build \
+buildctl --debug --addr=tcp://buildkitd:1234 build \
     --progress=plain \
     --frontend=dockerfile.v0 \
     --local context=/ \
@@ -97,7 +97,7 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
     ]
 
     command = [
-        "buildctl", "--debug", "--addr=tcp://buildkitd.buildkit:1234",
+        "buildctl", "--debug", "--addr=tcp://buildkitd:1234",
         "--tlscacert", "/certs/ca.crt",
         "--tlscert", "/certs/tls.crt",
         "--tlskey", "/certs/tls.key",
