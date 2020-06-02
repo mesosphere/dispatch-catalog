@@ -1,6 +1,6 @@
 # vi:syntax=python
 
-load("/starlark/stable/pipeline", "git_checkout_dir", "image_resource", "storage_resource")
+load("/starlark/stable/pipeline", "git_checkout_dir", "image_resource", "storage_resource", "secret_volume")
 load("/starlark/experimental/buildkit", "buildkit_container")
 
 __doc__ = """
@@ -16,7 +16,7 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.5", "g
 
 """
 
-def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[], outputs=[], steps=[], **kwargs):
+def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
     """
     Run Go tests and generate a coverage report.
     """
@@ -48,7 +48,11 @@ go tool cover -func $(resources.outputs.{storage}.path)/coverage.out | tee $(res
         )
     ]
 
-    task(task_name, inputs=inputs, outputs=outputs, steps=steps, **kwargs)
+    if not volumes:
+        volumes = []
+    volumes.append(k8s.corev1.Volume(name = "cert", volumeSource = secret_volume("buildkit-client-cert")))
+
+    task(task_name, inputs=inputs, outputs=outputs, steps=steps, volumes=volumes, **kwargs)
 
     return storage_name
 
@@ -93,11 +97,15 @@ go build -o $(resources.outputs.{storage}.path)/{os}_{arch}/ {build_args} {paths
                         k8s.corev1.EnvVar(name="GOARCH", value=goarch)
                     ],
                     workingDir=git_checkout_dir(git_name),
-                    output_paths=["$(resources.outputs.{}.path)".format(storage_name)]
+                    output_paths=["$(resources.outputs.{}.path)".format(storage_name)],
                 )
             ]
 
-    task(task_name, inputs=inputs, outputs=outputs, steps=steps, **kwargs)
+    if not volumes:
+        volumes = []
+    volumes.append(k8s.corev1.Volume(name = "cert", volumeSource = secret_volume("buildkit-client-cert")))
+
+    task(task_name, inputs=inputs, outputs=outputs, steps=steps, volumes=volumes, **kwargs)
 
     return storage_name
 

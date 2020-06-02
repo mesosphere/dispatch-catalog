@@ -16,7 +16,7 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.
 
 """
 
-def buildkit_container(name, image, workingDir, command, output_paths=[], **kwargs):
+def buildkit_container(name, image, workingDir, command, output_paths=[], cert_volume_name="cert", volumeMounts=None, **kwargs):
     """
     buildkit_container returns a Kubernetes corev1.Container that runs inside of buildkit.
     The container can take advantage of buildkit's cache mount feature as the cache is mounted into /cache.
@@ -57,6 +57,11 @@ COPY --from=0 {working_dir} {working_dir}
         copy_outputs=copy_outputs
     )
 
+    if not volumeMounts:
+        volumeMounts = []
+
+    volumeMounts.append(k8s.corev1.VolumeMount(name=cert_volume_name, mountPath="/certs/"))
+
     return k8s.corev1.Container(
         name=name,
         image="moby/buildkit:v0.6.2",
@@ -76,6 +81,7 @@ buildctl --debug --addr=tcp://buildkitd:1234 build \
     --tlscert /certs/tls.crt \
     --tlskey /certs/tls.key
         """.format(dockerfile)],
+        volumeMounts=volumeMounts,
         **kwargs
     )
 
