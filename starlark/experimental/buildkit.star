@@ -73,7 +73,7 @@ EOF
 buildctl --debug --addr=tcp://buildkitd:1234 \
     --tlscacert /certs/ca.crt \
     --tlscert /certs/tls.crt \
-    --tlskey /certs/tls.key
+    --tlskey /certs/tls.key \
     build \
     --progress=plain \
     --frontend=dockerfile.v0 \
