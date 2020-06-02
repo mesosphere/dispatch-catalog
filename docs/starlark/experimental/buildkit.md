@@ -6,18 +6,18 @@ Provides methods for interacting with a Buildkit instance.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.4", "buildkit")
+load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.5", "buildkit")
 ```
 
 
-### buildkitContainer(name, image, workingDir, command, output, **kwargs)
+### buildkit_container(name, image, workingDir, command, output_paths, cert_volume_name, volumeMounts, **kwargs)
 
 
-buildkitContainer returns a Kubernetes corev1.Container that runs inside of buildkit.
+buildkit_container returns a Kubernetes corev1.Container that runs inside of buildkit.
 The container can take advantage of buildkit's cache mount feature as the cache is mounted into /cache.
 
 
-### buildkit(git, image, context, dockerfile, tag, steps, buildArgs, buildEnv, inputs, **kwargs)
+### buildkit(task_name, git_name, image_repo, tag, context, dockerfile, build_args, build_env, inputs, outputs, steps, volumes, **kwargs)
 
 
 Build a Docker image using Buildkit.
