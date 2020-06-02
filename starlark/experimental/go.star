@@ -57,7 +57,7 @@ go tool cover -func $(resources.outputs.{storage}.path)/coverage.out | tee $(res
 
     return storage_name
 
-def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, os=["linux"], arch=["amd64"], inputs=[], outputs=[], steps=[], **kwargs):
+def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, os=["linux"], arch=["amd64"], inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
     """
     Build Go binaries.
     """
