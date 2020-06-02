@@ -70,16 +70,17 @@ COPY --from=0 {working_dir} {working_dir}
 cat > /tmp/Dockerfile.buildkit <<EOF
 {}
 EOF
-buildctl --debug --addr=tcp://buildkitd:1234 build \
+buildctl --debug --addr=tcp://buildkitd:1234 \
+    --tlscacert /certs/ca.crt \
+    --tlscert /certs/tls.crt \
+    --tlskey /certs/tls.key
+    build \
     --progress=plain \
     --frontend=dockerfile.v0 \
     --local context=/ \
     --local dockerfile=/tmp \
     --output type=local,dest=/ \
     --opt filename=Dockerfile.buildkit \
-    --tlscacert /certs/ca.crt \
-    --tlscert /certs/tls.crt \
-    --tlskey /certs/tls.key
         """.format(dockerfile)],
         volumeMounts=volumeMounts,
         **kwargs
