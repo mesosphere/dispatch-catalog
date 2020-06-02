@@ -10,12 +10,6 @@ load("github.com/mesosphere/dispatch-catalog/starlark/stable/docker@0.0.5", "din
 ```
 
 
-### dindTask(*args, **kwargs)
-
-
-DEPRECATED: Use dind_task instead.
-
-
 ### dind_task(name, steps, volumes, **kwargs)
 
 
@@ -29,6 +23,12 @@ dindTask("test", inputs=["git"], steps=[k8s.corev1.Container(
     command=["docker", "run", "-v", "/workspace/git:/workspace/git", "-w", "/workspace/git", "golang:1.13.0-buster", "go", "test", "./..."],
 )])
 ```
+
+
+### dindTask(*args, **kwargs)
+
+
+DEPRECATED: Use dind_task instead.
 
 
 

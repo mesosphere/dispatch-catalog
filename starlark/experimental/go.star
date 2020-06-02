@@ -17,7 +17,7 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.5", "g
 
 """
 
-def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
+def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[], outputs=[], steps=[], volumes=[], use_buildkit_cache=False, **kwargs):
     """
     Run Go tests and generate a coverage report.
     """
@@ -29,10 +29,20 @@ def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[]
         location="s3://artifacts/{}/".format(task_name)
     )
 
+    if not volumes:
+        volumes = []
+
+    container_args = {}
+    container = k8s.corev1.Container    
+    if use_buildkit_cache:
+        container = buildkit_container
+        container_args["output_paths"] = ["$(resources.outputs.{}.path)".format(storage_name)]
+        volumes.append(k8s.corev1.Volume(name = "cert", volumeSource = secret_volume("buildkit-client-cert")))
+
     inputs = inputs + [git_name]
     outputs = outputs + [storage_name]
     steps = steps + [
-        buildkit_container(
+        container(
             name="go-test",
             image=image,
             command=["sh", "-c", """\
@@ -45,19 +55,15 @@ go tool cover -func $(resources.outputs.{storage}.path)/coverage.out | tee $(res
             )],
             env=[k8s.corev1.EnvVar(name="GO111MODULE", value="on")],
             workingDir=git_checkout_dir(git_name),
-            output_paths=["$(resources.outputs.{}.path)".format(storage_name)]
+            **container_args
         )
     ]
-
-    if not volumes:
-        volumes = []
-    volumes.append(k8s.corev1.Volume(name = "cert", volumeSource = secret_volume("buildkit-client-cert")))
 
     task(task_name, inputs=inputs, outputs=outputs, steps=steps, volumes=volumes, **kwargs)
 
     return storage_name
 
-def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, os=["linux"], arch=["amd64"], inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
+def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, os=["linux"], arch=["amd64"], inputs=[], outputs=[], steps=[], volumes=[], use_buildkit_cache=False, **kwargs):
     """
     Build Go binaries.
     """
@@ -72,6 +78,16 @@ def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, 
     inputs = inputs + [git_name]
     outputs = outputs + [storage_name]
 
+    if not volumes:
+        volumes = []
+
+    container_args = {}
+    container = k8s.corev1.Container    
+    if use_buildkit_cache:
+        container = buildkit_container
+        volumes.append(k8s.corev1.Volume(name = "cert", volumeSource = secret_volume("buildkit-client-cert")))
+        container_args["output_paths"] = ["$(resources.outputs.{}.path)".format(storage_name)]
+
     build_args = []
     if ldflags:
         build_args += ["-ldflags", ldflags]
@@ -79,7 +95,7 @@ def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, 
     for goos in os:
         for goarch in arch:
             steps = steps + [
-                buildkit_container(
+                container(
                     name="go-build-{}-{}".format(goos, goarch),
                     image=image,
                     command=["sh", "-c", """\
@@ -98,13 +114,9 @@ go build -o $(resources.outputs.{storage}.path)/{os}_{arch}/ {build_args} {paths
                         k8s.corev1.EnvVar(name="GOARCH", value=goarch)
                     ],
                     workingDir=git_checkout_dir(git_name),
-                    output_paths=["$(resources.outputs.{}.path)".format(storage_name)],
+                    **container_args
                 )
             ]
-
-    if not volumes:
-        volumes = []
-    volumes.append(k8s.corev1.Volume(name = "cert", volumeSource = secret_volume("buildkit-client-cert")))
 
     task(task_name, inputs=inputs, outputs=outputs, steps=steps, volumes=volumes, **kwargs)
 

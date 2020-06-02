@@ -14,5 +14,5 @@ The official Starlark standard library for [Dispatch](https://docs.d2iq.com/ksph
 ## Experimental modules
 
 * [shiftleft](experimental/shiftleft.md)
-* [go](experimental/go.md)
 * [buildkit](experimental/buildkit.md)
+* [go](experimental/go.md)

@@ -10,54 +10,16 @@ load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.5", "g
 ```
 
 
-### git_revision(name)
+### volume(name, **kwargs)
 
 
-Shorthand for input git revision.
-
-Returns string "$(resources.inputs.<name>.revision)"
-
-
-### image_reference(name)
-
-
-Shorthand for input image reference with digest.
-
-Returns string "$(resources.inputs.<name>.url)@$(resources.inputs.<name>.digest)".
+DEPRECATED: Use volume source helpers in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
 
 
 ### clean(name)
 
 
 DEPRECATED: Use sanitize in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
-
-
-### gitResource(name, url, revision, pipeline)
-
-
-DEPRECATED: Use git_resource instead.
-
-
-### imageResource(name, url, digest, pipeline)
-
-
-DEPRECATED: Use image_resource instead.
-
-
-### git_checkout_dir(name)
-
-
-Shorthand for input git checkout directory.
-
-Returns string "$(resources.inputs.<name>.path)".
-
-
-### task_step_result(task, step)
-
-
-Shorthand for a task step result variable.
-
-Returns string "$(inputs.tasks.<task>.<step>)".
 
 
 ### tag(**kwargs)
@@ -68,10 +30,18 @@ A sugar function for creating a new tag condition.
 Example usage: `action(tasks=["test"], on=tag())`
 
 
-### pullRequest(**kwargs)
+### pull_request(**kwargs)
 
 
-DEPRECATED: Use pull_request instead.
+A sugar function for creating a new pull request condition.
+
+Example usage: `action(tasks=["test"], on=pull_request(chatops=["build"]))`
+
+
+### imageResource(name, url, digest, pipeline)
+
+
+DEPRECATED: Use image_resource instead.
 
 
 ### resourceVar(name, key)
@@ -82,37 +52,12 @@ DEPRECATED: Use dedicated resource variable helpers instead.
 Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
 
 
-### secretVar(name, key)
+### image_reference(name)
 
 
-DEPRECATED: Use secret_var in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
+Shorthand for input image reference with digest.
 
-
-### pull_request(**kwargs)
-
-
-A sugar function for creating a new pull request condition.
-
-Example usage: `action(tasks=["test"], on=pull_request(chatops=["build"]))`
-
-
-### git_resource(name, url, revision, pipeline)
-
-
-Define a new git resource in a pipeline.
-
-If url is not set, it defaults to the Git URL triggering this build, i.e., "$(context.git.url)".
-If revision is not set, it defaults to the commit SHA triggering this build, i.e., "$(context.git.commit)".
-
-Example usage: `git_resource("my-git", url="https://github.com/mesosphere/dispatch", revision="dev")`
-
-
-### image_resource(name, url, digest, pipeline)
-
-
-Define a new image resource in a pipeline.
-
-Example usage: `image_resource("my-image", "mesosphere/dispatch:latest")`
+Returns string "$(resources.inputs.<name>.url)@$(resources.inputs.<name>.digest)".
 
 
 ### storage_resource(name, location, secret, pipeline)
@@ -132,12 +77,18 @@ Example usage: `storage_resource("my-storage", location="s3://my-bucket/path", s
 DEPRECATED: Use storage_resource instead.
 
 
-### storage_dir(name)
+### git_revision(name)
 
 
-Shorthand for input storage root dir.
+Shorthand for input git revision.
 
-Returns string "$(resources.inputs.<name>.path)".
+Returns string "$(resources.inputs.<name>.revision)"
+
+
+### secretVar(name, key)
+
+
+DEPRECATED: Use secret_var in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
 
 
 ### push(**kwargs)
@@ -148,10 +99,59 @@ A sugar function for creating a new push condition.
 Example usage: `action(tasks=["test"], on=push(branches=["master"]))`
 
 
-### volume(name, **kwargs)
+### gitResource(name, url, revision, pipeline)
 
 
-DEPRECATED: Use volume source helpers in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
+DEPRECATED: Use git_resource instead.
+
+
+### image_resource(name, url, digest, pipeline)
+
+
+Define a new image resource in a pipeline.
+
+Example usage: `image_resource("my-image", "mesosphere/dispatch:latest")`
+
+
+### storage_dir(name)
+
+
+Shorthand for input storage root dir.
+
+Returns string "$(resources.inputs.<name>.path)".
+
+
+### pullRequest(**kwargs)
+
+
+DEPRECATED: Use pull_request instead.
+
+
+### git_resource(name, url, revision, pipeline)
+
+
+Define a new git resource in a pipeline.
+
+If url is not set, it defaults to the Git URL triggering this build, i.e., "$(context.git.url)".
+If revision is not set, it defaults to the commit SHA triggering this build, i.e., "$(context.git.commit)".
+
+Example usage: `git_resource("my-git", url="https://github.com/mesosphere/dispatch", revision="dev")`
+
+
+### git_checkout_dir(name)
+
+
+Shorthand for input git checkout directory.
+
+Returns string "$(resources.inputs.<name>.path)".
+
+
+### task_step_result(task, step)
+
+
+Shorthand for a task step result variable.
+
+Returns string "$(inputs.tasks.<task>.<step>)".
 
 
 
