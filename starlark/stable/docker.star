@@ -22,9 +22,9 @@ def dind_task(name, steps=[], volumes=[], **kwargs):
     Example usage:
 
     ```python
-    dindTask("test", inputs=["git"], steps=[k8s.corev1.Container(
+    dind_task("test", inputs=["git"], steps=[k8s.corev1.Container(
         name="test",
-        command=["docker", "run", "-v", "/workspace/git:/workspace/git", "-w", "/workspace/git", "golang:1.13.0-buster", "go", "test", "./..."],
+        args=["docker", "run", "-v", "/workspace/git:/workspace/git", "-w", "/workspace/git", "golang:1.13.0-buster", "go", "test", "./..."],
     )])
     ```
     """
@@ -38,6 +38,8 @@ def dind_task(name, steps=[], volumes=[], **kwargs):
     for index, step in enumerate(steps):
         if step.image == "":
             step.image = "mesosphere/dispatch-dind:1.1.0"
+        if not step.command:
+            step.command = ["/entrypoint.sh"]
         step.volumeMounts.extend([
             k8s.corev1.VolumeMount(name="docker", mountPath="/var/lib/docker"),
             k8s.corev1.VolumeMount(name="modules", mountPath="/lib/modules", readOnly=True),
