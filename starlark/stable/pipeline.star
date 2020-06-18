@@ -42,6 +42,14 @@ def pull_request(**kwargs):
 
     return p.Condition(pull_request=p.PullRequestCondition(**kwargs))
 
+def cron(**kwargs):
+    """
+    A sugar function for creating a new cron condition.
+
+    Example usage: `action(name="my-nightly-build", tasks=["test"], on=cron(schedule="@daily", revision="release-1.0"))`
+    """
+    return p.Condition(cron=p.CronCondition(**kwargs))
+
 def pullRequest(**kwargs):
     """
     DEPRECATED: Use pull_request instead.
