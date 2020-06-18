@@ -46,7 +46,7 @@ def cron(**kwargs):
     """
     A sugar function for creating a new cron condition.
 
-    Example usage: `action(tasks=["test"], on=cron(schedule=["build"], revision="release-1.0"))`
+    Example usage: `action(name="my-nightly-build", tasks=["test"], on=cron(schedule="@daily", revision="release-1.0"))`
     """
     return p.Condition(cron=p.CronCondition(**kwargs))
 
