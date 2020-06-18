@@ -19,12 +19,7 @@ def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[]
     Run Go tests and generate a coverage report.
     """
 
-    # TODO(chhsiao): Because the location is deterministic, artifacts will be overwritten by
-    # different runs. We should introduce a mechanism to avoid this.
-    storage_name = storage_resource(
-        "storage-{}".format(task_name),
-        location="s3://artifacts/{}/".format(task_name)
-    )
+    storage_name = storage_resource("storage-{}".format(task_name))
 
     inputs = inputs + [git_name]
     outputs = outputs + [storage_name]
@@ -54,12 +49,7 @@ def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, 
     Build a Go binary.
     """
 
-    # TODO(chhsiao): Because the location is deterministic, artifacts will be overwritten by
-    # different runs. We should introduce a mechanism to avoid this.
-    storage_name = storage_resource(
-        "storage-{}".format(task_name),
-        location="s3://artifacts/{}/".format(task_name)
-    )
+    storage_name = storage_resource("storage-{}".format(task_name))
 
     inputs = inputs + [git_name]
     outputs = outputs + [storage_name]
