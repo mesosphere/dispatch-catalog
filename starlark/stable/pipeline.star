@@ -217,7 +217,6 @@ def generate_version(git, name):
 
     Example usage:
 
-        ```
         git          = git_resource("git")
         version_task = "generate-version"
         version      = generate_version(git, version_task)
@@ -231,7 +230,6 @@ def generate_version(git, name):
                 ]
             )
         ])
-        ```
     """
     task(name, inputs=[git], steps=[
         k8s.corev1.Container(
