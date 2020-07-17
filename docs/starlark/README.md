@@ -4,12 +4,12 @@ The official Starlark standard library for [Dispatch](https://docs.d2iq.com/ksph
 
 ## Stable modules
 
+* [k8s](stable/k8s.md)
 * [kaniko](stable/kaniko.md)
 * [path](stable/path.md)
-* [k8s](stable/k8s.md)
 * [docker](stable/docker.md)
-* [pipeline](stable/pipeline.md)
 * [go](stable/go.md)
+* [pipeline](stable/pipeline.md)
 
 ## Experimental modules
 
