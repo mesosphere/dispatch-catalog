@@ -212,7 +212,7 @@ def generate_version(git, name):
     * `name`: the name of the task to create.
 
     Returns the task result variable name that can be used to access the version. A task using the
-    version number can list the version task name (the value specified in the name argument) in the task's inputs
+    version number must list the version task name (the value specified in the name argument) in the task's inputs
     and then the variable can be accessed from within the task.
 
     Example usage:
