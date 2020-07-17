@@ -208,8 +208,8 @@ def generate_version(git, name):
     id (e.g., "1.2.0-154-geb24b488").
 
     Arguments:
-        git: the git repository resource to use for calculating the version.
-        name: the name of the task to create.
+    * `git`: the git repository resource to use for calculating the version.
+    * `name`: the name of the task to create.
 
     Returns the task result variable name that can be used to access the version. A task using the
     version number can list the version task name (the value specified in the name argument) in the task's inputs
