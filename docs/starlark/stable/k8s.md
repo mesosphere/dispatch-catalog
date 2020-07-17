@@ -10,20 +10,6 @@ load("github.com/mesosphere/dispatch-catalog/starlark/stable/k8s@0.0.5", "secret
 ```
 
 
-### secret_volume(name, mode)
-
-
-Convenience function for adding a volume from a Kubernetes secret.
-
-Example usage: `k8s.corev1.Volume(name="my-volume", volumeSource=secret_volume("my-secret"))`
-
-
-### sanitize(name)
-
-
-Sanitize a name for passing in to Kubernetes / Dispatch.
-
-
 ### secret_var(name, key)
 
 
@@ -38,6 +24,20 @@ Example usage: `k8s.corev1.EnvVar(name="GITHUB_TOKEN", valueFrom=secret_var("scm
 Convenience function for adding a hosh path volume.
 
 Example usage: `k8s.corev1.Volume(name="my-volume", volumeSource=host_path_volume("/home", "Directory"))`
+
+
+### secret_volume(name, mode)
+
+
+Convenience function for adding a volume from a Kubernetes secret.
+
+Example usage: `k8s.corev1.Volume(name="my-volume", volumeSource=secret_volume("my-secret"))`
+
+
+### sanitize(name)
+
+
+Sanitize a name for passing in to Kubernetes / Dispatch.
 
 
 

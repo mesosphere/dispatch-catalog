@@ -10,10 +10,44 @@ load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.5", "g
 ```
 
 
-### storageResource(name)
+### pull_request(**kwargs)
 
 
-DEPRECATED: Use storage_resource instead.
+A sugar function for creating a new pull request condition.
+
+Example usage: `action(tasks=["test"], on=pull_request(chatops=["build"]))`
+
+
+### image_resource(name, url, digest, pipeline)
+
+
+Define a new image resource in a pipeline.
+
+Example usage: `image_resource("my-image", "mesosphere/dispatch:latest")`
+
+
+### git_revision(name)
+
+
+Shorthand for input git revision.
+
+Returns string "$(resources.inputs.<name>.revision)"
+
+
+### git_checkout_dir(name)
+
+
+Shorthand for input git checkout directory.
+
+Returns string "$(resources.inputs.<name>.path)".
+
+
+### image_reference(name)
+
+
+Shorthand for input image reference with digest.
+
+Returns string "$(resources.inputs.<name>.url)@$(resources.inputs.<name>.digest)".
 
 
 ### secretVar(name, key)
@@ -22,20 +56,12 @@ DEPRECATED: Use storage_resource instead.
 DEPRECATED: Use secret_var in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
 
 
-### tag(**kwargs)
+### push(**kwargs)
 
 
-A sugar function for creating a new tag condition.
+A sugar function for creating a new push condition.
 
-Example usage: `action(tasks=["test"], on=tag())`
-
-
-### pull_request(**kwargs)
-
-
-A sugar function for creating a new pull request condition.
-
-Example usage: `action(tasks=["test"], on=pull_request(chatops=["build"]))`
+Example usage: `action(tasks=["test"], on=push(branches=["master"]))`
 
 
 ### git_resource(name, url, revision, pipeline)
@@ -49,6 +75,24 @@ If revision is not set, it defaults to the commit SHA triggering this build, i.e
 Example usage: `git_resource("my-git", url="https://github.com/mesosphere/dispatch", revision="dev")`
 
 
+### gitResource(name, url, revision, pipeline)
+
+
+DEPRECATED: Use git_resource instead.
+
+
+### volume(name, **kwargs)
+
+
+DEPRECATED: Use volume source helpers in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
+
+
+### clean(name)
+
+
+DEPRECATED: Use sanitize in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
+
+
 ### storage_resource(name, location, secret, pipeline)
 
 
@@ -60,34 +104,18 @@ If secret is not set, it defaults to Dispatch's default S3 configuration secret.
 Example usage: `storage_resource("my-storage", location="s3://my-bucket/path", secret="my-boto-secret")`
 
 
-### git_checkout_dir(name)
+### storageResource(name)
 
 
-Shorthand for input git checkout directory.
-
-Returns string "$(resources.inputs.<name>.path)".
+DEPRECATED: Use storage_resource instead.
 
 
-### image_resource(name, url, digest, pipeline)
+### resourceVar(name, key)
 
 
-Define a new image resource in a pipeline.
+DEPRECATED: Use dedicated resource variable helpers instead.
 
-Example usage: `image_resource("my-image", "mesosphere/dispatch:latest")`
-
-
-### imageResource(name, url, digest, pipeline)
-
-
-DEPRECATED: Use image_resource instead.
-
-
-### task_step_result(task, step)
-
-
-Shorthand for a task step result variable.
-
-Returns string "$(inputs.tasks.<task>.<step>)".
+Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
 
 
 ### generate_version(git, name)
@@ -103,7 +131,7 @@ Arguments:
 * `name`: the name of the task to create.
 
 Returns the task result variable name that can be used to access the version. A task using the
-version number can list the version task name (the value specified in the name argument) in the task's inputs
+version number must list the version task name (the value specified in the name argument) in the task's inputs
 and then the variable can be accessed from within the task.
 
 Example usage:
@@ -123,18 +151,24 @@ Example usage:
     ])
 
 
-### push(**kwargs)
+### tag(**kwargs)
 
 
-A sugar function for creating a new push condition.
+A sugar function for creating a new tag condition.
 
-Example usage: `action(tasks=["test"], on=push(branches=["master"]))`
-
-
-### gitResource(name, url, revision, pipeline)
+Example usage: `action(tasks=["test"], on=tag())`
 
 
-DEPRECATED: Use git_resource instead.
+### pullRequest(**kwargs)
+
+
+DEPRECATED: Use pull_request instead.
+
+
+### imageResource(name, url, digest, pipeline)
+
+
+DEPRECATED: Use image_resource instead.
 
 
 ### storage_dir(name)
@@ -145,46 +179,12 @@ Shorthand for input storage root dir.
 Returns string "$(resources.inputs.<name>.path)".
 
 
-### image_reference(name)
+### task_step_result(task, step)
 
 
-Shorthand for input image reference with digest.
+Shorthand for a task step result variable.
 
-Returns string "$(resources.inputs.<name>.url)@$(resources.inputs.<name>.digest)".
-
-
-### volume(name, **kwargs)
-
-
-DEPRECATED: Use volume source helpers in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
-
-
-### clean(name)
-
-
-DEPRECATED: Use sanitize in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
-
-
-### pullRequest(**kwargs)
-
-
-DEPRECATED: Use pull_request instead.
-
-
-### resourceVar(name, key)
-
-
-DEPRECATED: Use dedicated resource variable helpers instead.
-
-Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
-
-
-### git_revision(name)
-
-
-Shorthand for input git revision.
-
-Returns string "$(resources.inputs.<name>.revision)"
+Returns string "$(inputs.tasks.<task>.<step>)".
 
 
 
