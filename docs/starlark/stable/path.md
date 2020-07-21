@@ -16,4 +16,10 @@ load("github.com/mesosphere/dispatch-catalog/starlark/stable/path@0.0.5", "basen
 Returns the base name of `path`. Returns '' if `path` contains trailing slashes.
 
 
+### join(path, paths)
+
+Join two or more path components, inserting '/' as needed.
+If any component is an absolute path, all previous path components
+will be discarded.
+
 

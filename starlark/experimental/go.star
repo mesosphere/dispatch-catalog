@@ -1,7 +1,8 @@
 # vi:syntax=python
 
-load("/starlark/stable/pipeline", "git_checkout_dir", "image_resource", "storage_resource")
 load("/starlark/stable/path", "join")
+load("/starlark/stable/pipeline", "image_resource", "storage_resource")
+load("/starlark/stable/git", "git_checkout_dir")
 load("/starlark/experimental/buildkit", "buildkit_container")
 
 __doc__ = """

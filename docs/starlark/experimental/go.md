@@ -10,6 +10,12 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.5", "g
 ```
 
 
+### go_test(task_name, git_name, paths, image, inputs, outputs, steps, **kwargs)
+
+
+Run Go tests and generate a coverage report.
+
+
 ### go(task_name, git_name, paths, image, ldflags, os, arch, inputs, outputs, steps, **kwargs)
 
 
@@ -21,11 +27,11 @@ Build Go binaries.
 
 Build a Docker container for a Go binary using ko.
 
-
-### go_test(task_name, git_name, paths, image, inputs, outputs, steps, **kwargs)
-
-
-Run Go tests and generate a coverage report.
+Args:
+    `working_dir` optionally can provide a path to a subdirectory within
+    the git repository. This can be used if repository has multiple
+    go modules and there is a need to build the module that is outside of
+    root directory.
 
 
 
