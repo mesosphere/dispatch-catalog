@@ -27,5 +27,11 @@ Build Go binaries.
 
 Build a Docker container for a Go binary using ko.
 
+Args:
+    `working_dir` optionally can provide a path to a subdirectory within
+    the git repository. This can be used if repository has multiple
+    go modules and there is a need to build the module that is outside of
+    root directory.
+
 
 

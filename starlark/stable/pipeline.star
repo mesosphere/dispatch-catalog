@@ -10,7 +10,7 @@ This module provides methods useful for crafting the basic Dispatch pipeline res
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.5", "git_resource")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.6", "image_resource")
 ```
 
 """
@@ -55,29 +55,6 @@ def pullRequest(**kwargs):
     DEPRECATED: Use pull_request instead.
     """
     return pull_request(**kwargs)
-
-def git_resource(name, url="$(context.git.url)", revision="$(context.git.commit)", pipeline=None):
-    """
-    Define a new git resource in a pipeline.
-
-    If url is not set, it defaults to the Git URL triggering this build, i.e., "$(context.git.url)".
-    If revision is not set, it defaults to the commit SHA triggering this build, i.e., "$(context.git.commit)".
-
-    Example usage: `git_resource("my-git", url="https://github.com/mesosphere/dispatch", revision="dev")`
-    """
-
-    resource(name, type="git", params={
-        "url": url,
-        "revision": revision
-    }, pipeline=pipeline)
-    return name
-
-def gitResource(name, url="$(context.git.url)", revision="$(context.git.commit)", pipeline=None):
-    """
-    DEPRECATED: Use git_resource instead.
-    """
-
-    return git_resource(name, url=url, revision=revision, pipeline=pipeline)
 
 def image_resource(name, url, digest="", pipeline=None):
     """
@@ -133,24 +110,6 @@ def resourceVar(name, key):
     """
 
     return "$(inputs.resources.{}.{})".format(name, key)
-
-def git_revision(name):
-    """
-    Shorthand for input git revision.
-
-    Returns string "$(resources.inputs.<name>.revision)"
-    """
-
-    return "$(resources.inputs.{}.revision)".format(name)
-
-def git_checkout_dir(name):
-    """
-    Shorthand for input git checkout directory.
-
-    Returns string "$(resources.inputs.<name>.path)".
-    """
-
-    return"$(resources.inputs.{}.path)".format(name)
 
 def image_reference(name):
     """
