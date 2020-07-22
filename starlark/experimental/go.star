@@ -1,6 +1,7 @@
 # vi:syntax=python
 
 load("/starlark/stable/pipeline", "git_checkout_dir", "image_resource", "storage_resource")
+load("/starlark/stable/path", "join")
 load("/starlark/experimental/buildkit", "buildkit_container")
 
 __doc__ = """
@@ -91,9 +92,15 @@ go build -o $(resources.outputs.{storage}.path)/{os}_{arch}/ {build_args} {paths
 
     return storage_name
 
-def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldflags=None, inputs=[], outputs=[], steps=[], **kwargs):
+def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldflags=None, working_dir="", inputs=[], outputs=[], steps=[], env=[], **kwargs):
     """
     Build a Docker container for a Go binary using ko.
+
+    Args:
+        `working_dir` optionally can provide a path to a subdirectory within
+        the git repository. This can be used if repository has multiple
+        go modules and there is a need to build the module that is outside of
+        root directory.
     """
 
     image_name = image_resource(
@@ -104,7 +111,7 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
     inputs = inputs + [git_name]
     outputs = outputs + [image_name]
 
-    env = [
+    env = env + [
         k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
         k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value="-") # This value is arbitrary to pass ko's validation.
     ]
@@ -123,7 +130,7 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
                 path
             ],
             env=env,
-            workingDir=git_checkout_dir(git_name),
+            workingDir=join(git_checkout_dir(git_name), working_dir),
             output_paths=["$(resources.outputs.{}.path)".format(image_name)]
         ),
         k8s.corev1.Container(

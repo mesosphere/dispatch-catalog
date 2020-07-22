@@ -19,3 +19,15 @@ def basename(path):
     """
 
     return path.rpartition("/")[2]
+
+def join(path, *paths):
+    """Join two or more path components, inserting '/' as needed.
+    If any component is an absolute path, all previous path components
+    will be discarded."""
+
+    for p in paths:
+        if p.startswith("/"):
+            path = p
+        elif p != "":
+            path += ("" if path == "" or path.endswith("/") else "/") + p
+    return path
