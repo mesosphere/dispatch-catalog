@@ -8,7 +8,7 @@ This module provides convenience functions related to Kubernetes.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/k8s@0.0.5", "secret_var")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/k8s@0.0.7", "secret_var")
 ```
 
 """

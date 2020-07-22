@@ -6,36 +6,8 @@ This module provides methods useful for crafting the basic Dispatch pipeline res
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.6", "image_resource")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.7", "image_resource")
 ```
-
-
-### clean(name)
-
-
-DEPRECATED: Use sanitize in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
-
-
-### imageResource(name, url, digest, pipeline)
-
-
-DEPRECATED: Use image_resource instead.
-
-
-### resourceVar(name, key)
-
-
-DEPRECATED: Use dedicated resource variable helpers instead.
-
-Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
-
-
-### image_reference(name)
-
-
-Shorthand for input image reference with digest.
-
-Returns string "$(resources.inputs.<name>.url)@$(resources.inputs.<name>.digest)".
 
 
 ### storage_dir(name)
@@ -44,6 +16,40 @@ Returns string "$(resources.inputs.<name>.url)@$(resources.inputs.<name>.digest)
 Shorthand for input storage root dir.
 
 Returns string "$(resources.inputs.<name>.path)".
+
+
+### volume(name, **kwargs)
+
+
+DEPRECATED: Use volume source helpers in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
+
+
+### image_resource(name, url, digest, pipeline)
+
+
+Define a new image resource in a pipeline.
+
+Example usage: `image_resource("my-image", "mesosphere/dispatch:latest")`
+
+
+### task_step_result(task, step)
+
+
+Shorthand for a task step result variable.
+
+Returns string "$(inputs.tasks.<task>.<step>)".
+
+
+### secretVar(name, key)
+
+
+DEPRECATED: Use secret_var in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
+
+
+### clean(name)
+
+
+DEPRECATED: Use sanitize in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
 
 
 ### push(**kwargs)
@@ -62,60 +68,12 @@ A sugar function for creating a new pull request condition.
 Example usage: `action(tasks=["test"], on=pull_request(chatops=["build"]))`
 
 
-### image_resource(name, url, digest, pipeline)
-
-
-Define a new image resource in a pipeline.
-
-Example usage: `image_resource("my-image", "mesosphere/dispatch:latest")`
-
-
-### storageResource(name)
-
-
-DEPRECATED: Use storage_resource instead.
-
-
-### task_step_result(task, step)
-
-
-Shorthand for a task step result variable.
-
-Returns string "$(inputs.tasks.<task>.<step>)".
-
-
-### secretVar(name, key)
-
-
-DEPRECATED: Use secret_var in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
-
-
-### volume(name, **kwargs)
-
-
-DEPRECATED: Use volume source helpers in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
-
-
-### tag(**kwargs)
-
-
-A sugar function for creating a new tag condition.
-
-Example usage: `action(tasks=["test"], on=tag())`
-
-
 ### cron(**kwargs)
 
 
 A sugar function for creating a new cron condition.
 
 Example usage: `action(name="my-nightly-build", tasks=["test"], on=cron(schedule="@daily", revision="release-1.0"))`
-
-
-### pullRequest(**kwargs)
-
-
-DEPRECATED: Use pull_request instead.
 
 
 ### storage_resource(name, location, secret, pipeline)
@@ -127,6 +85,48 @@ If location is not set, it defaults to Dispatch's default MinIO storage.
 If secret is not set, it defaults to Dispatch's default S3 configuration secret.
 
 Example usage: `storage_resource("my-storage", location="s3://my-bucket/path", secret="my-boto-secret")`
+
+
+### resourceVar(name, key)
+
+
+DEPRECATED: Use dedicated resource variable helpers instead.
+
+Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
+
+
+### image_reference(name)
+
+
+Shorthand for input image reference with digest.
+
+Returns string "$(resources.inputs.<name>.url)@$(resources.inputs.<name>.digest)".
+
+
+### tag(**kwargs)
+
+
+A sugar function for creating a new tag condition.
+
+Example usage: `action(tasks=["test"], on=tag())`
+
+
+### pullRequest(**kwargs)
+
+
+DEPRECATED: Use pull_request instead.
+
+
+### imageResource(name, url, digest, pipeline)
+
+
+DEPRECATED: Use image_resource instead.
+
+
+### storageResource(name)
+
+
+DEPRECATED: Use storage_resource instead.
 
 
 

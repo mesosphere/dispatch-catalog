@@ -10,7 +10,7 @@ Provides methods for using Docker.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/docker@0.0.5", "dind_task")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/docker@0.0.7", "dind_task")
 ```
 
 """

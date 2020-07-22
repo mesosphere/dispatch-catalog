@@ -6,7 +6,7 @@ Provides methods for building Docker containers using Kaniko.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/kaniko@0.0.5", "kaniko")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/kaniko@0.0.7", "kaniko")
 ```
 
 

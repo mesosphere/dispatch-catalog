@@ -12,7 +12,7 @@ Provides methods for building and testing Go modules.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/go@0.0.5", "go")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/go@0.0.7", "go")
 ```
 """
 

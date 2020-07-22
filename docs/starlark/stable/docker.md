@@ -6,14 +6,8 @@ Provides methods for using Docker.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/docker@0.0.5", "dind_task")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/docker@0.0.7", "dind_task")
 ```
-
-
-### dindTask(*args, **kwargs)
-
-
-DEPRECATED: Use dind_task instead.
 
 
 ### dind_task(name, steps, volumes, **kwargs)
@@ -29,6 +23,12 @@ dind_task("test", inputs=["git"], steps=[k8s.corev1.Container(
     args=["docker", "run", "-v", "/workspace/git:/workspace/git", "-w", "/workspace/git", "golang:1.13.0-buster", "go", "test", "./..."],
 )])
 ```
+
+
+### dindTask(*args, **kwargs)
+
+
+DEPRECATED: Use dind_task instead.
 
 
 

@@ -10,7 +10,7 @@ This module provides methods useful for crafting the basic Dispatch pipeline res
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.6", "image_resource")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.7", "image_resource")
 ```
 
 """

@@ -10,7 +10,7 @@ This module provides methods useful for working with git repositories.
 To import, add the following to your Dispatchfile:
 
 ```
-load("github.com/mesosphere/dispatch-catalog/starlark/stable/git@0.0.6", "generate_version")
+load("github.com/mesosphere/dispatch-catalog/starlark/stable/git@0.0.7", "generate_version")
 ```
 
 """
