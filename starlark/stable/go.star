@@ -1,6 +1,7 @@
 # vi:syntax=python
 
 load("/starlark/stable/pipeline", "git_checkout_dir", "image_resource", "storage_resource")
+load("/starlark/stable/path", "join")
 
 __doc__ = """
 # Go
@@ -87,7 +88,7 @@ go build -o $(resources.outputs.{storage}.path)/{os}_{arch}/ {build_args} {paths
 
     return storage_name
 
-def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldflags=None, working_dir=None, inputs=[], outputs=[], steps=[], env=[], **kwargs):
+def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldflags=None, working_dir="", inputs=[], outputs=[], steps=[], env=[], **kwargs):
     """
     Build a Docker container for a Go binary using ko.
 
@@ -111,10 +112,6 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
         k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value="-") # This value is arbitrary to pass ko's validation.
     ]
 
-    build_working_dir = git_checkout_dir(git_name)
-    if working_dir:
-        build_working_dir = build_working_dir + working_dir
-
     if ldflags:
         env.append(k8s.corev1.EnvVar(name="GOFLAGS", value="-ldflags={}".format(ldflags)))
 
@@ -129,7 +126,7 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
                 path
             ],
             env=env,
-            workingDir=build_working_dir,
+            workingDir=join(git_checkout_dir(git_name), working_dir),
         ),
         k8s.corev1.Container(
             name="push",
