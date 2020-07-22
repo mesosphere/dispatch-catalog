@@ -87,9 +87,15 @@ go build -o $(resources.outputs.{storage}.path)/{os}_{arch}/ {build_args} {paths
 
     return storage_name
 
-def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldflags=None, inputs=[], outputs=[], steps=[], **kwargs):
+def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldflags=None, working_dir=None, inputs=[], outputs=[], steps=[], env=[], **kwargs):
     """
     Build a Docker container for a Go binary using ko.
+
+    Args:
+        `working_dir` optionally can provide a path to a subdirectory within
+        the git repository. This can be used if repository has multiple
+        go modules and there is a need to build the module that is outside of
+        root directory.
     """
 
     image_name = image_resource(
@@ -105,6 +111,10 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
         k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value="-") # This value is arbitrary to pass ko's validation.
     ]
 
+    build_working_dir = git_checkout_dir(git_name)
+    if working_dir:
+        build_working_dir = build_working_dir + working_dir
+
     if ldflags:
         env.append(k8s.corev1.EnvVar(name="GOFLAGS", value="-ldflags={}".format(ldflags)))
 
@@ -119,7 +129,7 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
                 path
             ],
             env=env,
-            workingDir=git_checkout_dir(git_name),
+            workingDir=build_working_dir,
         ),
         k8s.corev1.Container(
             name="push",
