@@ -76,10 +76,12 @@ buildctl --debug --addr=tcp://buildkitd.buildkit:1234 build \
         **kwargs
     )
 
-def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", context=".", dockerfile="Dockerfile", build_args={}, build_env={}, inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
+def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", context=".", dockerfile="Dockerfile", working_dir="", build_args={}, build_env={}, env=[], inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
     """
     Build a Docker image using Buildkit.
     """
+    if working_dir == "":
+      working_dir=git_checkout_dir(git_name)
 
     image_name = image_resource(
         "image-{}".format(task_name),
@@ -110,9 +112,10 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
         k8s.corev1.Container(
             name="build",
             image="moby/buildkit:v0.6.2",
-            workingDir=git_checkout_dir(git_name),
+            workingDir=working_dir,
             command=command,
-            volumeMounts=[k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd")]
+            volumeMounts=[k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd")],
+            env=env
         ),
         k8s.corev1.Container(
             name="extract-and-push",
@@ -124,7 +127,8 @@ skopeo copy oci:$(resources.outputs.{image}.path)/ docker://$(resources.outputs.
                 image=image_name,
                 tag=tag
             )],
-            volumeMounts=[k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd")]
+            volumeMounts=[k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd")],
+            env=env
         )
     ]
 
