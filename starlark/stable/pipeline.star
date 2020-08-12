@@ -15,47 +15,6 @@ load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.7", "i
 
 """
 
-def push(**kwargs):
-    """
-    A sugar function for creating a new push condition.
-
-    Example usage: `action(tasks=["test"], on=push(branches=["master"]))`
-    """
-
-    return p.Condition(push=p.PushCondition(**kwargs))
-
-def tag(**kwargs):
-    """
-    A sugar function for creating a new tag condition.
-
-    Example usage: `action(tasks=["test"], on=tag())`
-    """
-
-    return p.Condition(tag=p.TagCondition(**kwargs))
-
-def pull_request(**kwargs):
-    """
-    A sugar function for creating a new pull request condition.
-
-    Example usage: `action(tasks=["test"], on=pull_request(chatops=["build"]))`
-    """
-
-    return p.Condition(pull_request=p.PullRequestCondition(**kwargs))
-
-def cron(**kwargs):
-    """
-    A sugar function for creating a new cron condition.
-
-    Example usage: `action(name="my-nightly-build", tasks=["test"], on=cron(schedule="@daily", revision="release-1.0"))`
-    """
-    return p.Condition(cron=p.CronCondition(**kwargs))
-
-def pullRequest(**kwargs):
-    """
-    DEPRECATED: Use pull_request instead.
-    """
-    return pull_request(**kwargs)
-
 def image_resource(name, url, digest="", pipeline=None):
     """
     Define a new image resource in a pipeline.
@@ -68,13 +27,6 @@ def image_resource(name, url, digest="", pipeline=None):
         "digest": digest
     }, pipeline=pipeline)
     return name
-
-def imageResource(name, url, digest, pipeline=None):
-    """
-    DEPRECATED: Use image_resource instead.
-    """
-
-    return image_resource(name, url, digest=digest, pipeline=pipeline)
 
 def storage_resource(name, location="", secret="s3-config", pipeline=None):
     """
@@ -94,22 +46,6 @@ def storage_resource(name, location="", secret="s3-config", pipeline=None):
         "BOTO_CONFIG": k8s.corev1.SecretKeySelector(key="boto", localObjectReference=k8s.corev1.LocalObjectReference(name=secret))
     }, pipeline=pipeline)
     return name
-
-def storageResource(name):
-    """
-    DEPRECATED: Use storage_resource instead.
-    """
-
-    return storage_resource(name)
-
-def resourceVar(name, key):
-    """
-    DEPRECATED: Use dedicated resource variable helpers instead.
-
-    Shorthand for a resource variable, returns a string "$(inputs.resources.<name>.<key>)"
-    """
-
-    return "$(inputs.resources.{}.{})".format(name, key)
 
 def image_reference(name):
     """
@@ -137,24 +73,3 @@ def task_step_result(task, step):
     """
 
     return "$(inputs.tasks.{}.{})".format(task, step)
-
-def secretVar(name, key):
-    """
-    DEPRECATED: Use secret_var in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
-    """
-
-    return secret_var(name, key)
-
-def volume(name, **kwargs):
-    """
-    DEPRECATED: Use volume source helpers in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
-    """
-
-    return k8s.corev1.Volume(name=name, volumeSource=k8s.corev1.VolumeSource(**kwargs))
-
-def clean(name):
-    """
-    DEPRECATED: Use sanitize in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
-    """
-
-    return sanitize(name)
