@@ -28,15 +28,8 @@ def git_resource(name, url="$(context.git.url)", revision="$(context.git.commit)
     resource(name, type="git", params={
         "url": url,
         "revision": revision
-    }, pipeline=pipeline)
+    })
     return name
-
-def gitResource(name, url="$(context.git.url)", revision="$(context.git.commit)", pipeline=None):
-    """
-    DEPRECATED: Use git_resource instead.
-    """
-
-    return git_resource(name, url=url, revision=revision, pipeline=pipeline)
 
 def git_revision(name):
     """

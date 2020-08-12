@@ -15,7 +15,7 @@ load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.7", "i
 
 """
 
-def image_resource(name, url, digest="", pipeline=None):
+def image_resource(name, url, digest=""):
     """
     Define a new image resource in a pipeline.
 
@@ -25,10 +25,10 @@ def image_resource(name, url, digest="", pipeline=None):
     resource(name, type="image", params={
         "url": url,
         "digest": digest
-    }, pipeline=pipeline)
+    })
     return name
 
-def storage_resource(name, location="", secret="s3-config", pipeline=None):
+def storage_resource(name, location="", secret="s3-config"):
     """
     Create a new S3-compatible resource.
 
@@ -44,7 +44,7 @@ def storage_resource(name, location="", secret="s3-config", pipeline=None):
         "dir": "y"
     }, secrets={
         "BOTO_CONFIG": k8s.corev1.SecretKeySelector(key="boto", localObjectReference=k8s.corev1.LocalObjectReference(name=secret))
-    }, pipeline=pipeline)
+    })
     return name
 
 def image_reference(name):
