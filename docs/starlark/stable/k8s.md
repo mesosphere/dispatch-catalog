@@ -10,6 +10,12 @@ load("github.com/mesosphere/dispatch-catalog/starlark/stable/k8s@0.0.7", "secret
 ```
 
 
+### sanitize(name)
+
+
+Sanitize a name for passing in to Kubernetes / Dispatch.
+
+
 ### secret_var(name, key)
 
 
@@ -32,12 +38,6 @@ Example usage: `k8s.corev1.Volume(name="my-volume", volumeSource=host_path_volum
 Convenience function for adding a volume from a Kubernetes secret.
 
 Example usage: `k8s.corev1.Volume(name="my-volume", volumeSource=secret_volume("my-secret"))`
-
-
-### sanitize(name)
-
-
-Sanitize a name for passing in to Kubernetes / Dispatch.
 
 
 

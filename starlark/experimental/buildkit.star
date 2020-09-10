@@ -16,15 +16,20 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.
 
 """
 
-def buildkit_container(name, image, workingDir, command, output_paths=[], **kwargs):
+def buildkit_container(name, image, workingDir, command, output_paths=[], volumeMounts=[], **kwargs):
     """
     buildkit_container returns a Kubernetes corev1.Container that runs inside of buildkit.
     The container can take advantage of buildkit's cache mount feature as the cache is mounted into /cache.
+    Callers _must_ have the `buildkit-client-cert` secret volume available to the container as a volume called `certs`. This method is generally intended to be imported by other catalog tasks and not used directly.
     """
 
     env = ""
     for env_var in kwargs.get("env", []):
         env += "ENV {} {}\n".format(env_var.name, env_var.value)
+
+    volumeMounts = volumeMounts + [
+        k8s.corev1.VolumeMount(name="cert", mountPath="/certs/")
+    ]
 
     add_outputs = ""
     copy_outputs = ""
@@ -61,11 +66,16 @@ COPY --from=0 {working_dir} {working_dir}
         name=name,
         image="moby/buildkit:v0.6.2",
         workingDir=workingDir,
+        volumeMounts=volumeMounts,
         command=["sh", "-c", """\
 cat > /tmp/Dockerfile.buildkit <<EOF
 {}
 EOF
-buildctl --debug --addr=tcp://buildkitd.buildkit:1234 build \
+buildctl --debug --addr=tcp://buildkitd:1234 \
+    --tlscacert=/certs/ca.crt \
+    --tlscert=/certs/tls.crt \
+    --tlskey=/certs/tls.key \
+    build \
     --progress=plain \
     --frontend=dockerfile.v0 \
     --local context=/ \
@@ -90,10 +100,19 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
 
     inputs = inputs + [git_name]
     outputs = outputs + [image_name]
-    volumes = volumes + [k8s.corev1.Volume(name = "buildkit-wd")]
+    volumes = volumes + [
+        k8s.corev1.Volume(name = "buildkit-wd"),
+        k8s.corev1.Volume(name = "cert", volumeSource = k8s.corev1.VolumeSource(
+            secret = k8s.corev1.SecretVolumeSource(secretName="buildkit-client-cert")
+        ))
+    ]
 
     command = [
-        "buildctl", "--debug", "--addr=tcp://buildkitd.buildkit:1234", "build",
+        "buildctl", "--debug", "--addr=tcp://buildkitd:1234",
+        "--tlscacert=/certs/ca.crt",
+        "--tlscert=/certs/tls.crt",
+        "--tlskey=/certs/tls.key",
+        "build",
         "--progress=plain",
         "--frontend=dockerfile.v0",
         "--local", "context={}".format(context),
@@ -114,7 +133,10 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
             image="moby/buildkit:v0.6.2",
             workingDir=working_dir,
             command=command,
-            volumeMounts=[k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd")],
+            volumeMounts=[
+                k8s.corev1.VolumeMount(name="buildkit-wd", mountPath="/wd"),
+                k8s.corev1.VolumeMount(name="cert", mountPath="/certs/")
+            ],
             env=env
         ),
         k8s.corev1.Container(

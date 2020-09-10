@@ -18,10 +18,16 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.7", "g
 
 """
 
-def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[], outputs=[], steps=[], **kwargs):
+def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
     """
     Run Go tests and generate a coverage report.
     """
+
+    volumes = volumes + [
+        k8s.corev1.Volume(name = "cert", volumeSource = k8s.corev1.VolumeSource(
+            secret = k8s.corev1.SecretVolumeSource(secretName="buildkit-client-cert")
+        ))
+    ]
 
     storage_name = storage_resource("storage-{}".format(task_name))
 
@@ -45,11 +51,11 @@ go tool cover -func $(resources.outputs.{storage}.path)/coverage.out | tee $(res
         )
     ]
 
-    task(task_name, inputs=inputs, outputs=outputs, steps=steps, **kwargs)
+    task(task_name, inputs=inputs, outputs=outputs, steps=steps, volumes=volumes, **kwargs)
 
     return storage_name
 
-def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, os=["linux"], arch=["amd64"], inputs=[], outputs=[], steps=[], **kwargs):
+def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, os=["linux"], arch=["amd64"], inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
     """
     Build Go binaries.
     """
@@ -58,6 +64,11 @@ def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, 
 
     inputs = inputs + [git_name]
     outputs = outputs + [storage_name]
+    volumes = volumes + [
+        k8s.corev1.Volume(name = "cert", volumeSource = k8s.corev1.VolumeSource(
+            secret = k8s.corev1.SecretVolumeSource(secretName="buildkit-client-cert")
+        ))
+    ]
 
     build_args = []
     if ldflags:
@@ -89,11 +100,11 @@ go build -o $(resources.outputs.{storage}.path)/{os}_{arch}/ {build_args} {paths
                 )
             ]
 
-    task(task_name, inputs=inputs, outputs=outputs, steps=steps, **kwargs)
+    task(task_name, inputs=inputs, outputs=outputs, steps=steps, volumes=volumes, **kwargs)
 
     return storage_name
 
-def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldflags=None, working_dir="", inputs=[], outputs=[], steps=[], env=[], **kwargs):
+def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldflags=None, working_dir="", inputs=[], outputs=[], steps=[], env=[], volumes=[], **kwargs):
     """
     Build a Docker container for a Go binary using ko.
 
@@ -111,6 +122,11 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
 
     inputs = inputs + [git_name]
     outputs = outputs + [image_name]
+    volumes = volumes + [
+        k8s.corev1.Volume(name = "cert", volumeSource = k8s.corev1.VolumeSource(
+            secret = k8s.corev1.SecretVolumeSource(secretName="buildkit-client-cert")
+        ))
+    ]
 
     env = env + [
         k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
@@ -145,6 +161,6 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
         )
     ]
 
-    task(task_name, inputs=inputs, outputs=outputs, steps=steps, **kwargs)
+    task(task_name, inputs=inputs, outputs=outputs, steps=steps, volumes=volumes, **kwargs)
 
     return image_name
