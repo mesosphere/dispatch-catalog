@@ -10,7 +10,19 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.7", "g
 ```
 
 
-### ko(task_name, git_name, image_repo, path, tag, ldflags, working_dir, inputs, outputs, steps, env, **kwargs)
+### go_test(task_name, git_name, paths, image, inputs, outputs, steps, volumes, **kwargs)
+
+
+Run Go tests and generate a coverage report.
+
+
+### go(task_name, git_name, paths, image, ldflags, os, arch, inputs, outputs, steps, volumes, **kwargs)
+
+
+Build Go binaries.
+
+
+### ko(task_name, git_name, image_repo, path, tag, ldflags, working_dir, inputs, outputs, steps, env, volumes, **kwargs)
 
 
 Build a Docker container for a Go binary using ko.
@@ -20,18 +32,6 @@ Args:
     the git repository. This can be used if repository has multiple
     go modules and there is a need to build the module that is outside of
     root directory.
-
-
-### go_test(task_name, git_name, paths, image, inputs, outputs, steps, **kwargs)
-
-
-Run Go tests and generate a coverage report.
-
-
-### go(task_name, git_name, paths, image, ldflags, os, arch, inputs, outputs, steps, **kwargs)
-
-
-Build Go binaries.
 
 
 
