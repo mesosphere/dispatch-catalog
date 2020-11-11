@@ -24,8 +24,11 @@ def buildkit_container(name, image, workingDir, command, output_paths=[], volume
     """
 
     env = ""
+    buildctl_args = ""
+
     for env_var in kwargs.get("env", []):
-        env += "ENV {} {}\n".format(env_var.name, env_var.value)
+        env += "ARG {name}\n".format(name=env_var.name)
+        buildctl_args += ' --opt "build-arg:{name}=${name}"'.format(name=env_var.name)
 
     volumeMounts = volumeMounts + [
         k8s.corev1.VolumeMount(name="cert", mountPath="/certs/")
@@ -81,8 +84,7 @@ buildctl --debug --addr=tcp://buildkitd:1234 \
     --local context=/ \
     --local dockerfile=/tmp \
     --output type=local,dest=/ \
-    --opt filename=Dockerfile.buildkit
-        """.format(dockerfile)],
+    --opt filename=Dockerfile.buildkit """.format(dockerfile) + buildctl_args ],
         **kwargs
     )
 
