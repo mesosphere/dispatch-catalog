@@ -150,8 +150,7 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
             workingDir=join(git_checkout_dir(git_name), working_dir),
             output_paths=["$(resources.outputs.{}.path)".format(image_name)]
         ),
-        k8s.corev1.Container(
-            name="push",
+        step("push",
             image="gcr.io/tekton-releases/dogfooding/skopeo:latest",
             command=[
                 "skopeo", "copy",

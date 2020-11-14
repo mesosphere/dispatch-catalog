@@ -71,8 +71,7 @@ def generate_version(git, name):
         version      = generate_version(git, version_task)
 
         task("print-version", inputs=[version_task], steps=[
-            k8s.corev1.Container(
-                name="print-version",
+            step("print-version",
                 image="alpine",
                 command=[
                     "/bin/ash", "-c", "echo {}".format(version)
@@ -81,8 +80,7 @@ def generate_version(git, name):
         ])
     """
     task(name, inputs=[git], steps=[
-        k8s.corev1.Container(
-            name="version",
+        step("version",
             image="alpine/git",
             workingDir=git_checkout_dir(git),
             command=[

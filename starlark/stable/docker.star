@@ -22,8 +22,7 @@ def dind_task(name, steps=[], volumes=[], **kwargs):
     Example usage:
 
     ```python
-    dind_task("test", inputs=["git"], steps=[k8s.corev1.Container(
-        name="test",
+    dind_task("test", inputs=["git"], steps=[step("test",
         args=["docker", "run", "-v", "/workspace/git:/workspace/git", "-w", "/workspace/git", "golang:1.13.0-buster", "go", "test", "./..."],
     )])
     ```
@@ -36,17 +35,17 @@ def dind_task(name, steps=[], volumes=[], **kwargs):
     ]
 
     for index, step in enumerate(steps):
-        if step.image == "":
-            step.image = "mesosphere/dispatch-dind:1.1.0"
-        if not step.command:
-            step.command = ["/entrypoint.sh"]
-        step.volumeMounts.extend([
+        if step.container.image == "":
+            step.container.image = "mesosphere/dispatch-dind:1.1.0"
+        if not step.container.command:
+            step.container.command = ["/entrypoint.sh"]
+        step.container.volumeMounts.extend([
             k8s.corev1.VolumeMount(name="docker", mountPath="/var/lib/docker"),
             k8s.corev1.VolumeMount(name="modules", mountPath="/lib/modules", readOnly=True),
             k8s.corev1.VolumeMount(name="cgroups", mountPath="/sys/fs/cgroup")
         ])
-        step.env.append(k8s.corev1.EnvVar(name="DOCKER_RANGE", value="172.17.1.1/24"))
-        step.securityContext=k8s.corev1.SecurityContext(privileged=True)
+        step.container.env.append(k8s.corev1.EnvVar(name="DOCKER_RANGE", value="172.17.1.1/24"))
+        step.container.securityContext=k8s.corev1.SecurityContext(privileged=True)
 
     return task(name, volumes=volumes, steps=steps, **kwargs)
 

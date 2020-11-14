@@ -62,8 +62,7 @@ COPY --from=0 {working_dir} {working_dir}
         copy_outputs=copy_outputs
     )
 
-    return k8s.corev1.Container(
-        name=name,
+    return step(name,
         image="moby/buildkit:v0.6.2",
         workingDir=workingDir,
         volumeMounts=volumeMounts,
@@ -128,8 +127,7 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
       command += ["--opt", "build-env:{}={}".format(k, v)]
 
     steps = steps + [
-        k8s.corev1.Container(
-            name="build",
+        step("build",
             image="moby/buildkit:v0.6.2",
             workingDir=working_dir,
             command=command,
@@ -139,8 +137,7 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
             ],
             env=env
         ),
-        k8s.corev1.Container(
-            name="extract-and-push",
+        step("extract-and-push",
             image="gcr.io/tekton-releases/dogfooding/skopeo:latest",
             command=["sh", "-c", """\
 tar -xf /wd/image.tar -C $(resources.outputs.{image}.path)/

@@ -26,8 +26,7 @@ def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[]
     inputs = inputs + [git_name]
     outputs = outputs + [storage_name]
     steps = steps + [
-        k8s.corev1.Container(
-            name="go-test",
+        step("go-test",
             image=image,
             command=["sh", "-c", """\
 set -x
@@ -63,8 +62,7 @@ def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, 
     for goos in os:
         for goarch in arch:
             steps = steps + [
-                k8s.corev1.Container(
-                    name="go-build-{}-{}".format(goos, goarch),
+                step("go-build-{}-{}".format(goos, goarch),
                     image=image,
                     command=["sh", "-c", """\
 mkdir -p $(resources.outputs.{storage}.path)/{os}_{arch}/
@@ -117,8 +115,7 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
         env.append(k8s.corev1.EnvVar(name="GOFLAGS", value="-ldflags={}".format(ldflags)))
 
     steps = steps + [
-        k8s.corev1.Container(
-            name="build",
+        step("build",
             image="gcr.io/tekton-releases/dogfooding/ko:latest",
             command=[
                 "ko", "publish",
@@ -129,7 +126,7 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
             env=env,
             workingDir=join(git_checkout_dir(git_name), working_dir),
         ),
-        k8s.corev1.Container(
+        step(
             name="push",
             image="gcr.io/tekton-releases/dogfooding/skopeo:latest",
             command=[
