@@ -22,7 +22,7 @@ def push(**kwargs):
     Example usage: `action(tasks=["test"], on=push(branches=["master"]))`
     """
 
-    return p.Condition(push=p.PushCondition(**kwargs))
+    return p.Condition(push=p.GitPushCondition(**kwargs))
 
 def tag(**kwargs):
     """
@@ -31,7 +31,7 @@ def tag(**kwargs):
     Example usage: `action(tasks=["test"], on=tag())`
     """
 
-    return p.Condition(tag=p.TagCondition(**kwargs))
+    return p.Condition(tag=p.GitTagCondition(**kwargs))
 
 def pull_request(**kwargs):
     """
@@ -40,7 +40,7 @@ def pull_request(**kwargs):
     Example usage: `action(tasks=["test"], on=pull_request(chatops=["build"]))`
     """
 
-    return p.Condition(pull_request=p.PullRequestCondition(**kwargs))
+    return p.Condition(pull_request=p.GitPullRequestCondition(**kwargs))
 
 def cron(**kwargs):
     """
