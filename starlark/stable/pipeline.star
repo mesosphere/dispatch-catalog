@@ -22,7 +22,7 @@ def push(**kwargs):
     Example usage: `action(tasks=["test"], on=push(branches=["master"]))`
     """
 
-    return p.Condition(push=p.PushCondition(**kwargs))
+    return p.Condition(git=p.GitCondition(push=p.GitPushCondition(**kwargs)))
 
 def tag(**kwargs):
     """
@@ -31,7 +31,7 @@ def tag(**kwargs):
     Example usage: `action(tasks=["test"], on=tag())`
     """
 
-    return p.Condition(tag=p.TagCondition(**kwargs))
+    return p.Condition(git=p.GitCondition(tag=p.GitTagCondition(**kwargs)))
 
 def pull_request(**kwargs):
     """
@@ -40,7 +40,7 @@ def pull_request(**kwargs):
     Example usage: `action(tasks=["test"], on=pull_request(chatops=["build"]))`
     """
 
-    return p.Condition(pull_request=p.PullRequestCondition(**kwargs))
+    return p.Condition(git=p.GitCondition(pull_request=p.GitPullRequestCondition(**kwargs)))
 
 def cron(**kwargs):
     """
@@ -48,7 +48,7 @@ def cron(**kwargs):
 
     Example usage: `action(name="my-nightly-build", tasks=["test"], on=cron(schedule="@daily", revision="release-1.0"))`
     """
-    return p.Condition(cron=p.CronCondition(**kwargs))
+    return p.Condition(cron=p.CronCondition(git=p.GitCronConfig(**kwargs)))
 
 def pullRequest(**kwargs):
     """
