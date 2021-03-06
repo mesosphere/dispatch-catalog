@@ -68,7 +68,7 @@ COPY --from=0 {working_dir} {working_dir}
         workingDir=workingDir,
         volumeMounts=volumeMounts,
         command=["sh", "-c", """\
-cat > /tmp/Dockerfile.buildkit <<EOF
+cat > /tmp/Dockerfile.buildkit <<'EOF'
 {}
 EOF
 buildctl --debug --addr=tcp://buildkitd:1234 \
