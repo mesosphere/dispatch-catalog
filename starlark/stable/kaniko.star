@@ -43,6 +43,7 @@ def kaniko(task_name, git_name, image_repo, tag="$(context.build.name)", context
         k8s.corev1.Container(
             name="build",
             image="gcr.io/kaniko-project/executor:latest",
+            command=["/kaniko/executor"],
             args=args,
             workingDir=git_checkout_dir(git_name)
         )
