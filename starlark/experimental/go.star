@@ -18,7 +18,7 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/go@0.0.7", "g
 
 """
 
-def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
+def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", env=[], inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
     """
     Run Go tests and generate a coverage report.
     """
@@ -33,6 +33,7 @@ def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[]
 
     inputs = inputs + [git_name]
     outputs = outputs + [storage_name]
+    env = env + [k8s.corev1.EnvVar(name="GO111MODULE", value="on")]
     steps = steps + [
         buildkit_container(
             name="go-test",
@@ -45,7 +46,7 @@ go tool cover -func $(resources.outputs.{storage}.path)/coverage.out | tee $(res
                 storage=storage_name,
                 paths=" ".join(paths)
             )],
-            env=[k8s.corev1.EnvVar(name="GO111MODULE", value="on")],
+            env=env,
             workingDir=git_checkout_dir(git_name),
             output_paths=["$(resources.outputs.{}.path)".format(storage_name)]
         )
