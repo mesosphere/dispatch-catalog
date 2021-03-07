@@ -20,6 +20,14 @@ def basename(path):
 
     return path.rpartition("/")[2]
 
+def dirname(path):
+    """
+    Returns the directory name of `path`. Trailing slashes will be removed unless the directory is equivalent to root.
+    """
+    d = path.rpartition("/")[0]
+    cleaned = d.rstrip("/")
+    return cleaned if cleaned != "" else d + ("/" if path.startswith("/") else "")
+
 def join(path, *paths):
     """Join two or more path components, inserting '/' as needed.
     If any component is an absolute path, all previous path components
