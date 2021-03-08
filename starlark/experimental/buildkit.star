@@ -16,7 +16,7 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.
 
 """
 
-def buildkit_container(name, image, workingDir, command, env=[], output_paths=[], volumeMounts=[], **kwargs):
+def buildkit_container(name, image, workingDir, command, env=[], input_paths=[], output_paths=[], volumeMounts=[], **kwargs):
     """
     buildkit_container returns a Kubernetes corev1.Container that runs inside of buildkit.
     The container can take advantage of buildkit's cache mount feature as the cache is mounted into /cache.
@@ -27,12 +27,14 @@ def buildkit_container(name, image, workingDir, command, env=[], output_paths=[]
     volumeMounts = volumeMounts + [k8s.corev1.VolumeMount(name="cert", mountPath="/certs/")]
 
     set_env = ""
-    add_outputs = ""
+    add_inputs = ""
     copy_outputs = ""
     for var in env:
         set_env += "ENV {} {}\n".format(var.name, var.value)
+    for input in input_paths:
+        add_inputs += "ADD {input} {input}\n".format(input=input)
     for output in output_paths:
-        add_outputs += "ADD {output} {output}\n".format(output=output)
+        add_inputs += "ADD {output} {output}\n".format(output=output)
         copy_outputs += "COPY --from=0 {output} {output}\n".format(output=output)
 
     dockerfile = """\
@@ -44,7 +46,7 @@ ENV GOPATH /cache/go
 ENV DOCKER_CONFIG /tekton/home/.docker
 {set_env}
 ADD /tekton/home/.docker /tekton/home/.docker
-{add_outputs}
+{add_inputs}
 ADD {working_dir} {working_dir}
 RUN --mount=type=cache,target=/cache {command}
 
@@ -55,7 +57,7 @@ COPY --from=0 {working_dir} {working_dir}
         image=image,
         working_dir=workingDir,
         set_env=set_env,
-        add_outputs=add_outputs,
+        add_inputs=add_inputs,
         command=command,
         copy_outputs=copy_outputs
     )
