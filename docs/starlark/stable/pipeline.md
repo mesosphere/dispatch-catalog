@@ -10,18 +10,52 @@ load("github.com/mesosphere/dispatch-catalog/starlark/stable/pipeline@0.0.7", "i
 ```
 
 
+### image_resource(name, url, digest, pipeline)
+
+
+Define a new image resource in a pipeline.
+
+Example usage: `image_resource("my-image", "mesosphere/dispatch:latest")`
+
+
+### imageResource(name, url, digest, pipeline)
+
+
+DEPRECATED: Use image_resource instead.
+
+
+### storageResource(name)
+
+
+DEPRECATED: Use storage_resource instead.
+
+
+### secretVar(name, key)
+
+
+DEPRECATED: Use secret_var in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
+
+
+### volume(name, **kwargs)
+
+
+DEPRECATED: Use volume source helpers in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
+
+
+### push(**kwargs)
+
+
+A sugar function for creating a new push condition.
+
+Example usage: `action(tasks=["test"], on=push(branches=["master"]))`
+
+
 ### cron(**kwargs)
 
 
 A sugar function for creating a new cron condition.
 
 Example usage: `action(name="my-nightly-build", tasks=["test"], on=cron(schedule="@daily", revision="release-1.0"))`
-
-
-### pullRequest(**kwargs)
-
-
-DEPRECATED: Use pull_request instead.
 
 
 ### resourceVar(name, key)
@@ -46,14 +80,6 @@ Returns string "$(resources.inputs.<name>.path)".
 DEPRECATED: Use sanitize in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
 
 
-### pull_request(**kwargs)
-
-
-A sugar function for creating a new pull request condition.
-
-Example usage: `action(tasks=["test"], on=pull_request(chatops=["build"]))`
-
-
 ### storage_resource(name, location, secret, pipeline)
 
 
@@ -73,48 +99,6 @@ Shorthand for a task step result variable.
 Returns string "$(inputs.tasks.<task>.<step>)".
 
 
-### volume(name, **kwargs)
-
-
-DEPRECATED: Use volume source helpers in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
-
-
-### push(**kwargs)
-
-
-A sugar function for creating a new push condition.
-
-Example usage: `action(tasks=["test"], on=push(branches=["master"]))`
-
-
-### image_resource(name, url, digest, pipeline)
-
-
-Define a new image resource in a pipeline.
-
-Example usage: `image_resource("my-image", "mesosphere/dispatch:latest")`
-
-
-### imageResource(name, url, digest, pipeline)
-
-
-DEPRECATED: Use image_resource instead.
-
-
-### storageResource(name)
-
-
-DEPRECATED: Use storage_resource instead.
-
-
-### image_reference(name)
-
-
-Shorthand for input image reference with digest.
-
-Returns string "$(resources.inputs.<name>.url)@$(resources.inputs.<name>.digest)".
-
-
 ### tag(**kwargs)
 
 
@@ -123,10 +107,26 @@ A sugar function for creating a new tag condition.
 Example usage: `action(tasks=["test"], on=tag())`
 
 
-### secretVar(name, key)
+### pull_request(**kwargs)
 
 
-DEPRECATED: Use secret_var in github.com/mesosphere/dispatch-catalog/starlark/stable/k8s instead.
+A sugar function for creating a new pull request condition.
+
+Example usage: `action(tasks=["test"], on=pull_request(chatops=["build"]))`
+
+
+### pullRequest(**kwargs)
+
+
+DEPRECATED: Use pull_request instead.
+
+
+### image_reference(name)
+
+
+Shorthand for input image reference with digest.
+
+Returns string "$(resources.inputs.<name>.url)@$(resources.inputs.<name>.digest)".
 
 
 
