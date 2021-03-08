@@ -16,23 +16,21 @@ load("github.com/mesosphere/dispatch-catalog/starlark/experimental/buildkit@0.0.
 
 """
 
-def buildkit_container(name, image, workingDir, command, output_paths=[], volumeMounts=[], **kwargs):
+def buildkit_container(name, image, workingDir, command, env=[], output_paths=[], volumeMounts=[], **kwargs):
     """
     buildkit_container returns a Kubernetes corev1.Container that runs inside of buildkit.
     The container can take advantage of buildkit's cache mount feature as the cache is mounted into /cache.
-    Callers _must_ have the `buildkit-client-cert` secret volume available to the container as a volume called `certs`. This method is generally intended to be imported by other catalog tasks and not used directly.
+    Callers _must_ have all volumes returned by buildkit_volumes in the pod of the container.
+    This method is generally intended to be imported by other catalog tasks and not used directly.
     """
 
-    env = ""
-    for env_var in kwargs.get("env", []):
-        env += "ENV {} {}\n".format(env_var.name, env_var.value)
+    volumeMounts = volumeMounts + [k8s.corev1.VolumeMount(name="cert", mountPath="/certs/")]
 
-    volumeMounts = volumeMounts + [
-        k8s.corev1.VolumeMount(name="cert", mountPath="/certs/")
-    ]
-
+    set_env = ""
     add_outputs = ""
     copy_outputs = ""
+    for var in env:
+        set_env += "ENV {} {}\n".format(var.name, var.value)
     for output in output_paths:
         add_outputs += "ADD {output} {output}\n".format(output=output)
         copy_outputs += "COPY --from=0 {output} {output}\n".format(output=output)
@@ -44,7 +42,7 @@ WORKDIR {working_dir}
 ENV GOCACHE /cache/go-cache
 ENV GOPATH /cache/go
 ENV DOCKER_CONFIG /tekton/home/.docker
-{env}
+{set_env}
 ADD /tekton/home/.docker /tekton/home/.docker
 {add_outputs}
 ADD {working_dir} {working_dir}
@@ -56,7 +54,7 @@ COPY --from=0 {working_dir} {working_dir}
     """.format(
         image=image,
         working_dir=workingDir,
-        env=env,
+        set_env=set_env,
         add_outputs=add_outputs,
         command=command,
         copy_outputs=copy_outputs
@@ -86,6 +84,16 @@ buildctl --debug --addr=tcp://buildkitd:1234 \
         **kwargs
     )
 
+def buildkit_volumes():
+    """
+    buildkit_volumes returns a list of Kubernetes corev1.Volumes and corev1.VolumeMounts required by buildkit_container,
+    which includes the `buildkit-client-cert` secret volume to be mounted in buildkit containers.
+    """
+
+    return [k8s.corev1.Volume(name="cert", volumeSource=k8s.corev1.VolumeSource(
+        secret=k8s.corev1.SecretVolumeSource(secretName="buildkit-client-cert")
+    ))]
+
 def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", context=".", dockerfile="Dockerfile", working_dir="", build_args={}, build_env={}, env=[], inputs=[], outputs=[], steps=[], volumes=[], **kwargs):
     """
     Build a Docker image using Buildkit.
@@ -100,11 +108,8 @@ def buildkit(task_name, git_name, image_repo, tag="$(context.build.name)", conte
 
     inputs = inputs + [git_name]
     outputs = outputs + [image_name]
-    volumes = volumes + [
+    volumes = volumes + buildkit_volumes() + [
         k8s.corev1.Volume(name = "buildkit-wd"),
-        k8s.corev1.Volume(name = "cert", volumeSource = k8s.corev1.VolumeSource(
-            secret = k8s.corev1.SecretVolumeSource(secretName="buildkit-client-cert")
-        ))
     ]
 
     command = [

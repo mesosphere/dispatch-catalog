@@ -3,7 +3,7 @@
 load("/starlark/stable/path", "basename", "join")
 load("/starlark/stable/pipeline", "image_resource", "storage_resource")
 load("/starlark/stable/git", "git_checkout_dir")
-load("/starlark/experimental/buildkit", "buildkit_container")
+load("/starlark/experimental/buildkit", "buildkit_container", "buildkit_volumes")
 
 __doc__ = """
 # Go
@@ -23,16 +23,12 @@ def go_test(task_name, git_name, paths=["./..."], image="golang:1.14", inputs=[]
     Run Go tests and generate a coverage report.
     """
 
-    volumes = volumes + [
-        k8s.corev1.Volume(name = "cert", volumeSource = k8s.corev1.VolumeSource(
-            secret = k8s.corev1.SecretVolumeSource(secretName="buildkit-client-cert")
-        ))
-    ]
-
     storage_name = storage_resource("storage-{}".format(task_name))
 
     inputs = inputs + [git_name]
     outputs = outputs + [storage_name]
+    volumes = volumes + buildkit_volumes()
+
     env = env + [k8s.corev1.EnvVar(name="GO111MODULE", value="on")]
     steps = steps + [
         buildkit_container(
@@ -65,11 +61,7 @@ def go(task_name, git_name, paths=["./..."], image="golang:1.14", ldflags=None, 
 
     inputs = inputs + [git_name]
     outputs = outputs + [storage_name]
-    volumes = volumes + [
-        k8s.corev1.Volume(name = "cert", volumeSource = k8s.corev1.VolumeSource(
-            secret = k8s.corev1.SecretVolumeSource(secretName="buildkit-client-cert")
-        ))
-    ]
+    volumes = volumes + buildkit_volumes()
 
     build_args = []
     if ldflags:
@@ -123,11 +115,7 @@ def ko(task_name, git_name, image_repo, path, tag="$(context.build.name)", ldfla
 
     inputs = inputs + [git_name]
     outputs = outputs + [image_name]
-    volumes = volumes + [
-        k8s.corev1.Volume(name="cert", volumeSource=k8s.corev1.VolumeSource(
-            secret=k8s.corev1.SecretVolumeSource(secretName="buildkit-client-cert")
-        ))
-    ]
+    volumes = volumes + buildkit_volumes()
 
     env = env + [
         k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
@@ -184,11 +172,7 @@ def ko_resolve(task_name, git_name, image_root, path, tag="", ldflags=None, work
 
     inputs = inputs + [git_name]
     outputs = outputs + [storage_name]
-    volumes = volumes + [
-        k8s.corev1.Volume(name="cert", volumeSource=k8s.corev1.VolumeSource(
-            secret=k8s.corev1.SecretVolumeSource(secretName="buildkit-client-cert")
-        ))
-    ]
+    volumes = volumes + buildkit_volumes()
 
     env = env + [
         k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
