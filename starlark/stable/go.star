@@ -1,6 +1,6 @@
 # vi:syntax=python
 
-load("/starlark/stable/path", "basename", "join")
+load("/starlark/stable/path", "basename", "splitext", "join")
 load("/starlark/stable/pipeline", "image_resource", "storage_resource")
 load("/starlark/stable/git", "git_checkout_dir")
 
@@ -178,7 +178,7 @@ def ko_resolve(task_name, git_name, image_root, path, tag="latest", ldflags=None
         image="gcr.io/tekton-releases/dogfooding/ko:latest",
         command=["sh", "-c", """
             ko resolve --base-import-paths --filename={} --tags={} | tee $(resources.outputs.{}.path)/{}.yaml
-        """.format(path, tag, storage_name, basename(path.rstrip("/")))],
+        """.format(path, tag, storage_name, splitext(basename(path.rstrip("/")))[0])],
         env=env,
         workingDir=join(git_checkout_dir(git_name), working_dir)
     )]

@@ -28,6 +28,14 @@ def dirname(path):
     cleaned = d.rstrip("/")
     return cleaned if cleaned != "" else d + ("/" if path.startswith("/") else "")
 
+def splitext(path):
+    """
+    Splits `path` into its root name and file extension. Leading periods on `path` are ignored.
+    """
+    parts = path.lstrip(".").rpartition(".")
+    ext = parts[1] + parts[2] if parts[1] == "." else ""
+    return path[:len(path)-len(ext)], ext
+
 def join(path, *paths):
     """Join two or more path components, inserting '/' as needed.
     If any component is an absolute path, all previous path components
