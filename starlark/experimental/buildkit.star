@@ -30,7 +30,7 @@ def buildkit_container(name, image, workingDir, command, env=[], input_paths=[],
     add_inputs = ""
     copy_outputs = ""
     for var in env:
-        set_env += "ENV {} {}\n".format(var.name, var.value)
+        set_env += "ENV {}=\"{}\"\n".format(var.name, var.value)
     for input in input_paths:
         add_inputs += "ADD {input} {input}\n".format(input=input)
     for output in output_paths:
