@@ -16,6 +16,18 @@ load("github.com/mesosphere/dispatch-catalog/starlark/stable/path@0.0.7", "basen
 Returns the base name of `path`. Returns '' if `path` contains trailing slashes.
 
 
+### dirname(path)
+
+
+Returns the directory name of `path`. Trailing slashes will be removed unless the directory is equivalent to root.
+
+
+### splitext(path)
+
+
+Splits `path` into its root name and file extension. Leading periods on `path` are ignored.
+
+
 ### join(path, paths)
 
 Join two or more path components, inserting '/' as needed.
