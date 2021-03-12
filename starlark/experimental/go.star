@@ -169,9 +169,6 @@ def ko_resolve(task_name, git_name, image_root, path, tag="", ldflags=None, work
         root directory.
     """
 
-    if tag == "":
-      tag = "latest"
-
     storage_name = storage_resource("storage-{}".format(task_name))
 
     inputs = inputs + [git_name]
@@ -180,7 +177,8 @@ def ko_resolve(task_name, git_name, image_root, path, tag="", ldflags=None, work
 
     env = env + [
         k8s.corev1.EnvVar(name="GO111MODULE", value="on"),
-        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value=image_root)
+        k8s.corev1.EnvVar(name="KO_DOCKER_REPO", value=image_root),
+        k8s.corev1.EnvVar(name="KO_DOCKER_TAG", value=tag)
     ]
 
     if ldflags:
@@ -190,8 +188,9 @@ def ko_resolve(task_name, git_name, image_root, path, tag="", ldflags=None, work
         name="resolve",
         image="gcr.io/tekton-releases/dogfooding/ko:latest",
         command=["sh", "-c", """
-            ko resolve --base-import-paths --filename={} --tags={} | tee $(resources.outputs.{}.path)/{}.yaml
-        """.format(path, tag, storage_name, splitext(basename(path.rstrip("/")))[0])],
+            ko resolve --base-import-paths --filename={} --tags=${{KO_DOCKER_TAG:-latest}} | \
+                tee $(resources.outputs.{}.path)/{}.yaml
+        """.format(path, storage_name, splitext(basename(path.rstrip("/")))[0])],
         env=env,
         workingDir=join(git_checkout_dir(git_name), working_dir),
         output_paths=["$(resources.outputs.{}.path)".format(storage_name)]
