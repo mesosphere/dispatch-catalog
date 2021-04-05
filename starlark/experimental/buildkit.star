@@ -43,9 +43,12 @@ FROM {image}
 WORKDIR {working_dir}
 ENV GOCACHE /cache/go-cache
 ENV GOPATH /cache/go
-ENV DOCKER_CONFIG /tekton/home/.docker
+ENV DOCKER_CONFIG /tekton/creds/.docker
 {set_env}
-ADD /tekton/home/.docker /tekton/home/.docker
+ADD /tekton/creds /tekton/creds
+RUN cp /tekton/creds/.gitconfig $HOME/
+RUN cp /tekton/creds/.git-credentials $HOME/
+RUN cp -r /tekton/creds/.ssh $HOME/
 {add_inputs}
 ADD {working_dir} {working_dir}
 RUN --mount=type=cache,target=/cache {command}
